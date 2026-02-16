@@ -206,10 +206,15 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
             arguments?.getParcelable("foodDataResponses")
         }
 
-        val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val formatFullDate = DateTimeFormatter.ofPattern("d MMMM yyyy")
-        tvSelectedDate.text = currentDateTime.format(formatFullDate)
+        if (selectedMealDate.equals("") || selectedMealDate.equals("null")){
+            val currentDateTime = LocalDateTime.now()
+            val formatFullDate = DateTimeFormatter.ofPattern("d MMMM yyyy")
+            tvSelectedDate.text = currentDateTime.format(formatFullDate)
+        }else{
+            val currentDateTime = selectedMealDate
+            val formatFullDate = formatDisplayDateToReadable(currentDateTime)
+            tvSelectedDate.text = formatFullDate
+        }
 
         descriptionName = arguments?.getString("description").toString()
         checkBox.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -258,8 +263,8 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
                 selectedMealType = items[defaultIndex]
             }
             // Disable user interaction (disable dropdown)
-            spinner.isEnabled = false
-            spinner.isClickable = false
+//            spinner.isEnabled = false
+//            spinner.isClickable = false
         }else if (homeTab.equals("homeTab")){
             saveMealLayout.visibility = View.VISIBLE
             val defaultIndex = items.indexOf(formatMealTypeName(mealType))
@@ -296,12 +301,12 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
             }
         }
 
-        if (!snapMealLog.equals("snapMealLog")) {
+      //  if (!snapMealLog.equals("snapMealLog")) {
             view.findViewById<LinearLayoutCompat>(R.id.datePickerLayout).setOnClickListener {
                 // Open Date Picker
                 showDatePicker()
             }
-        }
+       // }
 
         if (foodDataResponses?.data != null) {
             setFoodData(foodDataResponses)
@@ -962,7 +967,7 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
         )
         val today = System.currentTimeMillis()
         // 🚫 Disable past dates
-        datePicker.datePicker.minDate = today
+      //  datePicker.datePicker.minDate = today
         // 🚫 Disable future dates
         datePicker.datePicker.maxDate = today
         datePicker.show()
@@ -1013,9 +1018,9 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
         //val currentDateUtc: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
         val nowInstant = Instant.now()
         val currentDateUtc = nowInstant.getMealLogDate(4)//currentDateTime.format(formatter)
-        val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val formattedDate = currentDateTime.format(formatter)
+ //       val currentDateTime = LocalDateTime.now()
+//        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+//        val formattedDate = currentDateTime.format(formatter)
         if (snapRecipeList.size > 0) {
             val snapMealLogRequest = SnapMealLogRequest(
                 user_id = userId,
@@ -1300,13 +1305,15 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
             }
         }
         val userId = SharedPreferenceManager.getInstance(requireActivity()).userId
-        val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val formattedDate = currentDateTime.format(formatter)
+//        val currentDateTime = LocalDateTime.now()
+//        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+//        val formattedDate = currentDateTime.format(formatter)
+        val apiDate = tvSelectedDate.text.toString()
+        val formatApiDate = formatApiDateToReadable(apiDate)
         val updateMealRequest = UpdateSnapMealLogRequest(
             meal_name = foodNameEdit.text.toString(),
-            date = tvSelectedDate.text.toString(),
-            meal_type = selectedMealType,
+            date = formatApiDate,
+            meal_type = formatMealType(selectedMealType),
             meal_log = snapRecipeList
         )
         val call = ApiClient.apiServiceFastApiV2.updateSnapLogMeal(userId, mealId, updateMealRequest)
@@ -1353,5 +1360,19 @@ class MealScanResultFragment : BaseFragment<FragmentMealScanResultsBinding>(),
                 }
             }
         })
+    }
+
+    fun formatDisplayDateToReadable(date: String): String {
+        val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
+        val outputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH)
+        val localDate = LocalDate.parse(date, inputFormatter)
+        return localDate.format(outputFormatter)
+    }
+
+    fun formatApiDateToReadable(date: String): String {
+        val inputFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH)
+        val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
+        val localDate = LocalDate.parse(date, inputFormatter)
+        return localDate.format(outputFormatter)
     }
 }
