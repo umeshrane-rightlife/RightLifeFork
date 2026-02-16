@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:text="Today"
             android:textSize="22sp"
-            android:fontFamily="@font/dmsans_bold"
+            android:fontFamily="@font/merriweather_bold"
             android:textColor="@color/eatright_text_color"
             android:layout_marginBottom="3dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -321,7 +321,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Practised today"
+                                    android:text="Practised Today"
                                     android:textSize="10sp"
                                     android:fontFamily="@font/dmsans_regular"
                                     android:layout_gravity="center"
@@ -369,7 +369,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="this week"
+                                    android:text="This Week"
                                     android:textSize="10sp"
                                     android:fontFamily="@font/dmsans_regular"
                                     android:layout_gravity="center"
@@ -521,7 +521,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:visibility="gone"
-                        android:text="Anxiety, anger, stress —our clinical tools can help you track it all. Try one and take a real check-in."
+                        android:text="Anxiety, anger, stress, our clinical tools can help you track it all.
+Try one and take a real check-in."
                         tools:layout_editor_absoluteY="1586dp" />
 
                     <TextView
@@ -1096,15 +1097,19 @@
                             android:src="@drawable/brown_add_icon"
                             />
                     </androidx.cardview.widget.CardView>
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/tool_list_think_right"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="20dp"
-                            android:clipChildren="false"
-                            android:clipToPadding="false"
-                            android:paddingEnd="20dp"
-                           />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/tool_list_think_right"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:minHeight="160dp"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="20dp"
+                        android:paddingTop="10dp"
+                        />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -1423,7 +1428,7 @@
                             app:layout_constraintEnd_toEndOf="parent"/>
                         <TextView
                             android:id="@+id/tv_journaling_desc"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text=""
                             android:textSize="12sp"
@@ -1432,6 +1437,7 @@
                             android:textColor="@color/black"
                             app:layout_constraintTop_toBottomOf="@id/viewDate"
                             app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
                             android:layout_marginTop="15dp" />
 
                         <androidx.recyclerview.widget.RecyclerView
@@ -2022,7 +2028,8 @@
                                 android:textSize="16sp"
                                 android:fontFamily="@font/dmsans_regular"
                                 android:textColor="@color/black_no_meals"
-                                android:text="Anxiety, anger, stress —our clinical tools can help you track it all. Try one and take a real check-in."
+                                android:text="Anxiety, anger, stress, our clinical tools can help you track it all.
+Try one and take a real check-in."
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toBottomOf="@+id/no_data_mind_audit_heading"/>
