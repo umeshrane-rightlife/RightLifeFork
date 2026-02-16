@@ -35,8 +35,9 @@ class JumpInBackAdapter(
 
             binding.itemText.text = item.contentType ?: "Untitled"
             binding.tvTitle.text = item.title
-            Log.d("Type-------", ""+getTextAccording(item.contentType))
-            binding.tvLeftTime.text = "${item.leftDuration ?: ""} ${getTextAccording(item.contentType)}"
+            Log.d("Type-------", "" + getTextAccording(item.contentType))
+            binding.tvLeftTime.text =
+                "${item.leftDuration ?: ""} ${getTextAccording(item.contentType)}"
             binding.tvdateTime.text = DateTimeUtils.convertAPIDateMonthFormat(item.date)
             binding.tvName.text = item.categoryName
 
@@ -59,13 +60,7 @@ class JumpInBackAdapter(
                 binding.progressBar.progress = progress
             } else {
 
-                val duration = item.meta?.duration ?: 0 // total duration in seconds
-                val left = item.leftDurationINT ?: 0
-                val progress = if (left == duration) 100
-                else if (duration > 0) {
-                    val completed = (duration - left).coerceAtLeast(0)
-                    ((completed.toFloat() / duration) * 100).toInt().coerceIn(0, 100)
-                } else 0
+                val progress = getVideoAudioProgress(item)
 
                 binding.progressBar.progress = progress
             }
@@ -96,6 +91,7 @@ class JumpInBackAdapter(
                             ContentDetailsActivity::class.java
                         ).apply {
                             putExtra("contentId", item.id)
+                            putExtra("PROGRESS", item.leftDurationINT)
                         })
                 } else if (item.contentType.equals("SERIES", ignoreCase = true)) {
                     context.startActivity(
@@ -159,5 +155,15 @@ class JumpInBackAdapter(
             "SERIES".equals(contentType, ignoreCase = true) -> ""
             else -> "" // Return an empty string for unknown types to avoid showing "null"
         }
+    }
+
+    private fun getVideoAudioProgress(item: ContentDetails): Int {
+        val duration = item.meta?.duration ?: 0 // total duration in seconds
+        val left = item.leftDurationINT ?: 0
+        return if (left == duration) 100
+        else if (duration > 0) {
+            val completed = (duration - left).coerceAtLeast(0)
+            ((completed.toFloat() / duration) * 100).toInt().coerceIn(0, 100)
+        } else 0
     }
 }

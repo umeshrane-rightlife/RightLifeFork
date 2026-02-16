@@ -336,6 +336,9 @@ We also use device identifiers to improve analytics and tailor your in-app exper
     <string name="change_text"><u>Change</u></string>
     <string name="view_all"><u>View All</u></string>
 
+    <string name="tasks_completed_format">%1$d of %2$d tasks completed</string>
 
+    <string name="sleep_duration_zero">0 hrs 0 mins</string>
+    <string name="sleep_duration_format">%1$d hrs %2$d mins</string>
 
 </resources>

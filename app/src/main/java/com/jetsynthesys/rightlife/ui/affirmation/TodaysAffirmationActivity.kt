@@ -98,8 +98,8 @@ class TodaysAffirmationActivity : BaseActivity() {
             finish()
         }
 
-        if (sharedPreferenceManager.firstTimeUserAffirmationInfoShown)
-            showInfoDialog()
+        /*if (sharedPreferenceManager.firstTimeUserAffirmationInfoShown)
+            showInfoDialog()*/
 
         binding.llCategorySelection.setOnClickListener {
             categoryBottomSheetDialog.show()
@@ -701,6 +701,8 @@ class TodaysAffirmationActivity : BaseActivity() {
                     if (affirmationPlaylist.isNotEmpty()) {
                         binding.btnCreateAffirmation.text = "Save"
                         binding.btnCreateAffirmation.isEnabled = true
+                    } else {
+                        showInfoDialog()
                     }
                 } else {
                     Toast.makeText(
@@ -859,7 +861,7 @@ class TodaysAffirmationActivity : BaseActivity() {
                 }
         }
         dialog.show()
-        sharedPreferenceManager.firstTimeUserAffirmationInfoShown = false
+        //sharedPreferenceManager.firstTimeUserAffirmationInfoShown = false
     }
 
     private fun showCreatedUpdatedDialog(message: String) {

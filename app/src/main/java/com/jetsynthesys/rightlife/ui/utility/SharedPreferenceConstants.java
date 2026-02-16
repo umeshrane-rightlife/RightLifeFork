@@ -98,6 +98,8 @@ public class SharedPreferenceConstants {
 
     public static final String NEW_USER = "NEW_USER";
 
+    public static final String SYNC_PERMISSION_COUNT = "SYNC_PERMISSION_COUNT";
+
 }
 
 

@@ -78,7 +78,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="${appIcon}"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/circular_logo"
+        android:roundIcon="${appIconCircular}"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"

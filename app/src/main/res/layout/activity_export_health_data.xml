@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:padding="24dp"
         android:fontFamily="@font/dmsans_regular"
-        android:text="Your health journey, your data. Get a complete record of your wellness data, activity, nutrition, sleep, and more;all in your mailbox within 24–48 hours. Secure &amp; Private – Your data remains protected."
+        android:text="Your health journey, your data. Get a complete record of your wellness data, activity, nutrition, sleep, and more;all in your mailbox within 24–48 hours. Secure &amp; Private - Your data remains protected."
         android:textColor="@color/txt_color_header"
         android:textSize="16sp"
         android:lineSpacingExtra="4dp" />

@@ -62,7 +62,8 @@
                 android:layout_gravity="center_vertical"
                 android:visibility="visible"
                 android:layout_centerVertical="true"
-                app:np_value="6" />
+                app:np_value="6"
+                app:np_wrapSelectorWheel="false"/>
 
             <Button
                 android:id="@+id/btn_continue"

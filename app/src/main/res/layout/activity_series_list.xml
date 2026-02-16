@@ -88,8 +88,6 @@
                 android:textSize="@dimen/textsize_large20sp"
                 android:gravity="center"
                 android:layout_marginHorizontal="@dimen/margin_card_16dp"
-                android:maxLines="2"
-                android:ellipsize="end"
                 android:layout_marginVertical="@dimen/margin_card_16dp"
                 android:layout_height="wrap_content"/>
             <LinearLayout

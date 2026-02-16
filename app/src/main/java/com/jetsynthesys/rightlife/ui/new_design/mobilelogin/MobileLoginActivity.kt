@@ -1,6 +1,5 @@
 package com.jetsynthesys.rightlife.ui.new_design
 
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,6 +22,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
@@ -55,7 +55,6 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import androidx.core.view.isVisible
 
 class MobileLoginActivity : BaseActivity() {
 
@@ -79,7 +78,7 @@ class MobileLoginActivity : BaseActivity() {
     private val smsConsentLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val message = result.data?.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE)
             message?.let {
                 val otp = Regex("\\b(\\d{6})\\b").find(it)?.value
@@ -288,9 +287,25 @@ class MobileLoginActivity : BaseActivity() {
                         boxes[index - 1].requestFocus()
                         boxes[index - 1].setText("")
                     }
+                    setOtpBoxesBackground(R.drawable.bg_otp_default)
                 }
                 false
             }
+        }
+    }
+
+    private fun setOtpBoxesBackground(drawableResource: Int) {
+        val boxes = listOf(
+            binding.etOtp1,
+            binding.etOtp2,
+            binding.etOtp3,
+            binding.etOtp4,
+            binding.etOtp5,
+            binding.etOtp6
+        )
+
+        boxes.forEach { editText ->
+            editText.setBackgroundResource(drawableResource)
         }
     }
 
@@ -505,7 +520,11 @@ class MobileLoginActivity : BaseActivity() {
                     )
 
                     handleSuccessfulVerification(phone)
+                    //Success
+                    setOtpBoxesBackground(R.drawable.bg_otp_success)
                 } else {
+                    //error
+                    setOtpBoxesBackground(R.drawable.bg_otp_error)
                     failedOtpAttempts++
                     binding.tvOtpError.text = "Incorrect OTP"
                     binding.tvOtpError.visibility = View.VISIBLE
@@ -710,7 +729,7 @@ class MobileLoginActivity : BaseActivity() {
     // -------------------------------------------------------------------
 
     private fun hideKeyboard(view: View) {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
@@ -767,7 +786,7 @@ class MobileLoginActivity : BaseActivity() {
                         val jsonObject = JSONObject(responseString)
 
                         val statusCode = jsonObject.optInt("statusCode")
-                        val displayMessage = jsonObject.optString("displayMessage")
+                        jsonObject.optString("displayMessage")
 
                         if (statusCode == 200) {
                             requestOtp(phoneNumber)
@@ -891,13 +910,17 @@ class MobileLoginActivity : BaseActivity() {
 
         bottomSheetDialog.show()
 
-        AnalyticsLogger.logEvent(AnalyticsEvent.Login_DiffNo_PopUp,
-            mapOf(AnalyticsParam.USER_ID to sharedPreferenceManager.userId,
+        AnalyticsLogger.logEvent(
+            AnalyticsEvent.Login_DiffNo_PopUp,
+            mapOf(
+                AnalyticsParam.USER_ID to sharedPreferenceManager.userId,
                 AnalyticsParam.USERNAME to sharedPreferenceManager.userName,
                 AnalyticsParam.PLATFORM_TYPE to "Android",
                 AnalyticsParam.LOGIN_TYPE to "Phone Number",
-                AnalyticsParam.DEVICE_NAME to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim(),
-                AnalyticsParam.TIMESTAMP to System.currentTimeMillis()))
+                AnalyticsParam.DEVICE_NAME to "${Build.MANUFACTURER} ${Build.MODEL}".trim(),
+                AnalyticsParam.TIMESTAMP to System.currentTimeMillis()
+            )
+        )
     }
 
 

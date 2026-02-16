@@ -11,14 +11,13 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.Player
 import com.google.gson.Gson
 import com.jetsynthesys.rightlife.BaseActivity
 import com.jetsynthesys.rightlife.R
@@ -60,6 +59,7 @@ class ContentDetailsActivity : BaseActivity() {
     private lateinit var binding: ActivityContentDetailsBinding
     private var contentTypeForTrack: String = ""
     private lateinit var contentId: String
+    private var leftDuration = 0
     private lateinit var contentResponseObj: ModuleContentDetail
     private var startTime: Long = 0
 
@@ -69,6 +69,7 @@ class ContentDetailsActivity : BaseActivity() {
         binding = ActivityContentDetailsBinding.inflate(layoutInflater)
         setChildContentView(binding.root)
         contentId = intent.getStringExtra("contentId").toString()
+        leftDuration = intent.getIntExtra("PROGRESS", 0)
         startTime = System.currentTimeMillis()
         //API Call
         if (contentId != null) {
@@ -85,6 +86,15 @@ class ContentDetailsActivity : BaseActivity() {
             finish()
         }
 
+        onBackPressedDispatcher.addCallback {
+            if (contentTypeForTrack.equals("video", ignoreCase = true)) {
+                logContentWatchedEvent()
+            } else {
+                logContentWatchedEventAudio()
+            }
+            onBackPressedDispatcher.onBackPressed()
+        }
+
         val viewCountRequest = ViewCountRequest()
         viewCountRequest.id = contentId
         viewCountRequest.userId = sharedPreferenceManager.userId
@@ -95,9 +105,10 @@ class ContentDetailsActivity : BaseActivity() {
                 val url = ApiClient.VIDEO_CDN_URL + contentResponseObj.data.url
                 PlayerHolder.lastPosition = player.currentPosition
                 binding.exoPlayerView.player = null   // <<< MUST ADD THIS
-                val intent = Intent(this, FullscreenVideoActivity::class.java)
-                intent.putExtra("VIDEO_URL", url)
-                intent.putExtra("CONTENT_ID", contentId)
+                val intent = Intent(this, FullscreenVideoActivity::class.java).apply {
+                    putExtra("VIDEO_URL", url)
+                    putExtra("CONTENT_ID", contentId)
+                }
                 startActivity(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -126,7 +137,7 @@ class ContentDetailsActivity : BaseActivity() {
                         if (response.body() != null) {
                             val successMessage = response.body()!!.string()
                             val gson = Gson()
-                            val jsonResponse = gson.toJson(response.body().toString())
+                            gson.toJson(response.body().toString())
                             contentResponseObj = gson.fromJson<ModuleContentDetail>(
                                 successMessage,
                                 ModuleContentDetail::class.java
@@ -193,6 +204,11 @@ class ContentDetailsActivity : BaseActivity() {
                 contentTypeForTrack = "AUDIO"
             } else {
                 // For video Player
+                // Convert Seconds to Milliseconds
+                val totalDurationMs = contentResponseObj.data.meta.duration
+                val leftDurationMs = leftDuration
+
+                PlayerHolder.lastPosition = maxOf(0L, (totalDurationMs - leftDurationMs) * 1000L)
                 initializePlayer(contentResponseObj.data.url)
                 binding.rlVideoPlayerMain.visibility = View.VISIBLE
                 binding.rlPlayerMusicMain.visibility = View.GONE
@@ -301,120 +317,34 @@ class ContentDetailsActivity : BaseActivity() {
         }
     }
 
-
-    /*private fun initializePlayer(previewUrl: String) {
-        // Create a new ExoPlayer instance
-        player = ExoPlayer.Builder(this).build()
-        //player.playWhenReady = true
-        binding.exoPlayerView.setPlayer(player)
-        val videoUri = Uri.parse(
-            ApiClient.CDN_URL_QA + previewUrl
-        )
-        Log.d("Received Content type", "Video URL: " + videoUri)
-
-
-        val mediaSource: MediaSource = ProgressiveMediaSource.Factory(
-            DefaultDataSourceFactory(this@ContentDetailsActivity)
-        ).createMediaSource(MediaItem.fromUri(videoUri))
-        player.setMediaSource(mediaSource)
-        // Prepare the player and start playing automatically
-
-        player.addListener(object : com.google.android.exoplayer2.Player.Listener {
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if (playbackState == com.google.android.exoplayer2.Player.STATE_READY) {
-                    Log.d("ExoPlayer", "Player is ready to play")
-                    player.play()
-                } else if (playbackState == com.google.android.exoplayer2.Player.STATE_ENDED) {
-                    Log.d("ExoPlayer", "Playback ended")
-                }
-            }
-        })
-        player.prepare()
-
-    }*/
-
-    /*private fun initializePlayer(previewUrl: String) {
-        // Create a new ExoPlayer instance
-        player = ExoPlayer.Builder(this).build()
-        player.playWhenReady = true // Set to true to auto-start once ready
-        binding.exoPlayerView.setPlayer(player)
-
-        // *** Use a known good test URL ***
-        val testVideoUri = Uri.parse("https://live-hls-abr-cdn.livepush.io/live/bigbuckbunnyclip/index.m3u8")
-       *//* val testVideoUri = Uri.parse(
-            ApiClient.CDN_URL_QA + previewUrl
-        )*//*
-
-        // Log the test URL
-        Log.d("ExoPlayerTest", "Testing with known good URL: $testVideoUri")
-
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
-        // No need for specific Accept header for general testing, keep it simple
-        // .setDefaultRequestProperties(mapOf("Accept" to "video/mp4"))
-
-        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(testVideoUri)) // Use the test URI
-
-        player.setMediaSource(mediaSource)
-
-        player.addListener(object : com.google.android.exoplayer2.Player.Listener {
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if (playbackState == com.google.android.exoplayer2.Player.STATE_READY) {
-                    Log.d("ExoPlayer", "Player is ready to play - TEST URL")
-                    // player.play() // No need if playWhenReady is true
-                } else if (playbackState == com.google.android.exoplayer2.Player.STATE_ENDED) {
-                    Log.d("ExoPlayer", "Playback ended - TEST URL")
-                }
-                // Add more detailed state logging for debugging
-                when (playbackState) {
-                    com.google.android.exoplayer2.Player.STATE_IDLE -> Log.d("ExoPlayer", "State: IDLE")
-                    com.google.android.exoplayer2.Player.STATE_BUFFERING -> Log.d("ExoPlayer", "State: BUFFERING")
-                    com.google.android.exoplayer2.Player.STATE_READY -> Log.d("ExoPlayer", "State: READY")
-                    com.google.android.exoplayer2.Player.STATE_ENDED -> Log.d("ExoPlayer", "State: ENDED")
-                }
-            }
-
-            override fun onPlayerError(error: PlaybackException) {
-                Log.e("ExoPlayer", "Playback error from test URL: ${error.message}", error)
-                error.printStackTrace()
-            }
-        })
-        player.prepare()
-    }*/
-
-
     private fun initializePlayer(previewUrl: String) {
-
         player = PlayerHolder.initPlayer(this)
         binding.exoPlayerView.player = player
 
         val videoUri = Uri.parse(ApiClient.VIDEO_CDN_URL + previewUrl)
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
+        val mediaItem = MediaItem.fromUri(videoUri)
 
-        val mediaSource =
-            if (videoUri.toString().endsWith(".m3u8")) {
-                HlsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(MediaItem.fromUri(videoUri))
-            } else {
-                ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(MediaItem.fromUri(videoUri))
+        // 1. Set the media item
+        player.setMediaItem(mediaItem)
+
+        // 2. Add a one-time listener to seek ONLY when the player is ready
+        player.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_READY) {
+                    if (PlayerHolder.lastPosition > 0L) {
+                        player.seekTo(PlayerHolder.lastPosition)
+
+                        // Reset so it doesn't seek again on buffer/pause
+                        PlayerHolder.lastPosition = 0L
+                    }
+                    // Remove listener so this only happens once
+                    player.removeListener(this)
+                }
             }
+        })
 
-        // ⭐ DO NOT CHECK currentMediaItem — ALWAYS SET THE SOURCE
-        player.setMediaSource(mediaSource, /* resetPosition */ false)
-
-        // prepare only once
-        if (PlayerHolder.needsPrepare) {
-            player.prepare()
-            PlayerHolder.needsPrepare = false
-        }
-
-        // resume video
-        player.seekTo(PlayerHolder.lastPosition)
+        player.prepare()
         player.playWhenReady = true
-
-        //logVideoOpenEvent(this, contentResponseObj, contentId, AnalyticsEvent.VIDEO_OPENED)
-        logContentOpenedEvent()
     }
 
 
@@ -579,7 +509,7 @@ class ContentDetailsActivity : BaseActivity() {
                         "Article Bookmark response: $articleLikeResponse"
                     )
                     val gson = Gson()
-                    val jsonResponse = gson.toJson(response.body())
+                    gson.toJson(response.body())
                     val message = if (isBookmark) {
                         "Added To Your Saved Items"
                     } else {
@@ -609,7 +539,7 @@ class ContentDetailsActivity : BaseActivity() {
                     val articleLikeResponse = response.body()
                     Log.d("API Response", "Article response: $articleLikeResponse")
                     val gson = Gson()
-                    val jsonResponse = gson.toJson(response.body())
+                    gson.toJson(response.body())
                     //Utils.showCustomToast(this@ContentDetailsActivity, response.message())
                 } else {
                     //  Toast.makeText(HomeActivity.this, "Server Error: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -816,43 +746,6 @@ class ContentDetailsActivity : BaseActivity() {
         )
         logVideoOpenEvent(this, contentResponseObj, contentId, AnalyticsEvent.Audio_Open)
     }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        if (contentTypeForTrack.equals("video", ignoreCase = true)) {
-            logContentWatchedEvent()
-        } else {
-            logContentWatchedEventAudio()
-        }
-    }
-
-    /*    override fun onPause() {
-            super.onPause()
-
-            // Pause video
-            if (::player.isInitialized && player.isPlaying) {
-                player.pause()
-            }
-
-            // Pause audio
-            if (::mediaPlayer.isInitialized && mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-            }
-        }
-
-        override fun onDestroy() {
-            super.onDestroy()
-            if (::player.isInitialized) {
-                callTrackAPI(player.currentPosition.toDouble() / 1000)
-                player.release()
-            }
-
-            if (::mediaPlayer.isInitialized) {
-                callTrackAPI(mediaPlayer.currentPosition.toDouble() / 1000)
-                mediaPlayer.release()
-            }
-            handler.removeCallbacks(updateProgress)
-        }*/
 
     override fun onPause() {
         super.onPause()

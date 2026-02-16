@@ -1,12 +1,14 @@
 package com.jetsynthesys.rightlife.ui.affirmation
 
 import android.content.Context
+import android.graphics.drawable.PictureDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.RetrofitData.ApiClient
 import com.jetsynthesys.rightlife.ui.affirmation.pojo.AffirmationCategoryData
@@ -32,7 +34,14 @@ class AffirmationCategoryListAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = categoryList[position]
         holder.tvCategoryRow.text = category.title
-        GlideApp.with(context)
+        /*GlideApp.with(context)
+            .load(ApiClient.CDN_URL_QA + category.image)
+            .placeholder(R.drawable.rl_placeholder)
+            .error(R.drawable.rl_placeholder)
+            .into(holder.imageCategoryRow)*/
+
+        Glide.with(context)
+            .`as`(PictureDrawable::class.java)
             .load(ApiClient.CDN_URL_QA + category.image)
             .placeholder(R.drawable.rl_placeholder)
             .error(R.drawable.rl_placeholder)

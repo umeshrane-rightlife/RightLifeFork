@@ -81,8 +81,8 @@
             android:layout_marginBottom="50dp"
             android:text="Inhale"
             android:gravity="center_horizontal"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:textSize="30sp"
+            android:fontFamily="@font/dmsans_semibold"
             android:textColor="@color/black" />
 
         <!-- Animated Circle -->

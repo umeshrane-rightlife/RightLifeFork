@@ -92,9 +92,12 @@ class AffirmationCardPagerAdapter(
 
 
 
-        tvAffirmationTitle.text = "\"${item.title}\""
+        //tvAffirmationTitle.text = "\"${item.title}\""
 
-        tvAffirmationAuthor.text = "${item.artist}"
+        // As per bug https://jetsynthesys.atlassian.net/browse/RAD-7265 removed inverted comma
+        tvAffirmationTitle.text = item.title
+
+        tvAffirmationAuthor.text = item.artist
 
 
         // Load image using Glide

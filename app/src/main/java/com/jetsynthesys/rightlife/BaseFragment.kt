@@ -1,6 +1,7 @@
 package com.jetsynthesys.rightlife
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.jetsynthesys.rightlife.RetrofitData.ApiClient
 import com.jetsynthesys.rightlife.RetrofitData.ApiService
 import com.jetsynthesys.rightlife.databinding.FragmentBaseBinding
+import com.jetsynthesys.rightlife.showCustomToast
 import com.jetsynthesys.rightlife.ui.utility.SharedPreferenceManager
 import com.jetsynthesys.rightlife.ui.utility.Utils.showCustomToast
 import com.jetsynthesys.rightlife.ui.utility.Utils.showNewDesignToast
@@ -43,14 +45,13 @@ open class BaseFragment : Fragment() {
 
     fun handleNoInternetView(e: Throwable) {
         if (!isAdded || context == null) return
-        /*when (e) {
-            is IOException ->
-                baseBinding.noInternetView.visibility = View.VISIBLE
-
-            else -> e.message?.let { showCustomToast(it) }
-        }*/
-        if (e is IOException)
-            e.message?.let { showNewDesignToast(requireContext(), it,false) }
+        requireActivity().runOnUiThread {
+            when (e) {
+                is java.net.SocketTimeoutException -> Log.e("Error", e.message ?: "Timeout")
+                is IOException -> e.message?.let { showCustomToast(requireActivity(),it) }
+                else -> e.message?.let { showCustomToast(requireActivity(),it) }
+            }
+        }
     }
 
     // IMPORTANT: Clear the binding reference in onDestroyView to prevent memory leaks

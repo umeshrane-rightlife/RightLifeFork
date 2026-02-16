@@ -3,14 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.services)
     alias(libs.plugins.firebase.crashlytics)
-    id 'kotlin-kapt'
-    id 'kotlin-parcelize'
-
-
-
-
-
-
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -121,6 +115,7 @@ android {
 
             // App icon
             manifestPlaceholders["appIcon"] = "@drawable/logo_rightlife_blue_qa"
+            manifestPlaceholders["appIconCircular"] = "@drawable/circular_logo_blue"
 
         }
 
@@ -137,6 +132,7 @@ android {
 
             // App icon
             manifestPlaceholders["appIcon"] = "@drawable/logo_rightlife"
+            manifestPlaceholders["appIconCircular"] = "@drawable/circular_logo"
 
         }
     }

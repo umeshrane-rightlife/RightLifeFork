@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/dmsans_bold"
+        android:fontFamily="@font/merriweather_bold"
         android:text="What is your age?"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
@@ -37,15 +37,16 @@
         app:cardCornerRadius="25dp"
         android:layout_marginBottom="-12dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="50dp">
+            android:layout_marginBottom="50dp"
+            android:orientation="vertical">
 
             <com.shawnlin.numberpicker.NumberPicker
                 android:id="@+id/number_picker"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="300dp"
                 android:layout_margin="16dp"
                 android:layout_centerInParent="true"
                 app:np_width="64dp"
@@ -62,7 +63,8 @@
                 android:visibility="visible"
                 android:layout_centerVertical="true"
                 app:np_value="6"
-                android:layout_above="@id/btn_confirm" />
+                android:layout_above="@id/btn_confirm"
+                app:np_wrapSelectorWheel="false"/>
 
             <Button
                 android:id="@+id/btn_confirm"
@@ -75,9 +77,8 @@
                 android:fontFamily="@font/dmsans_bold"
                 android:text="Confirm"
                 android:textColor="@color/white"
-                android:textSize="@dimen/textsize_large"
-                android:layout_alignParentBottom="true" />
-        </RelativeLayout>
+                android:textSize="@dimen/textsize_large" />
+        </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 

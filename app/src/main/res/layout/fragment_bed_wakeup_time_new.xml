@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvQuestion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_card_16dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/merriweather_bold"
+        android:text="What time do you usually go to bed and wake up?"
+        android:textColor="@color/menu_icon_color_unselected"
+        android:textSize="@dimen/textsize_large18sp" />
+
+
+        <!-- Bedtime Label -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_sleep_bad" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Bedtime:"
+                android:textSize="20sp"
+                android:fontFamily="@font/dmsans_regular" />
+
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@color/white"
+            android:elevation="4dp"
+            app:cardCornerRadius="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/time_picker_right"
+                    app:tint="#1292E5" />
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/bedTimeHourPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="20sp"
+                    app:np_selectedTextSize="24sp"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_selectedTextColor="#1292E5"
+                    app:np_textColor="#0B1215"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":"
+                    android:textColor="#1292E5"
+                    android:textSize="25sp"
+                    android:fontFamily="@font/dmsans_bold"
+                    android:layout_gravity="center_vertical"
+                    android:paddingHorizontal="8dp" />
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/bedTimeMinutePicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="20sp"
+                    app:np_selectedTextSize="24sp"
+                    app:np_selectedTextColor="#1292E5"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_textColor="#0B1215"/>
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/bedTimeAmPmPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="12sp"
+                    app:np_selectedTextSize="16sp"
+                    app:np_selectedTextColor="#1292E5"
+                    android:layout_gravity="center_vertical"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_textColor="#0B1215"/>
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/timepicker_left"
+                    android:layout_marginStart="16dp"
+                    android:layout_gravity="center_vertical"
+                    app:tint="#1292E5"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <!-- Bedtime Label -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_sleep_clock" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Wake time:"
+                android:textSize="20sp"
+                android:fontFamily="@font/dmsans_regular" />
+
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@color/white"
+            android:elevation="4dp"
+            app:cardCornerRadius="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/time_picker_right"
+                    android:layout_gravity="center_vertical"
+                    app:tint="#FB9900"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/wakeUpHourPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="20sp"
+                    app:np_selectedTextSize="24sp"
+                    app:np_selectedTextColor="#FB9900"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_textColor="#0B1215"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=":"
+                    android:textColor="#FB9900"
+                    android:textSize="25sp"
+                    android:fontFamily="@font/dmsans_bold"
+                    android:layout_gravity="center_vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="16dp" />
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/wakeUpMinutePicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="20sp"
+                    app:np_selectedTextSize="24sp"
+                    app:np_selectedTextColor="#FB9900"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_textColor="#0B1215"/>
+
+                <com.shawnlin.numberpicker.NumberPicker
+                    android:id="@+id/wakeUpAmPmPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    app:np_textSize="12sp"
+                    app:np_selectedTextSize="16sp"
+                    app:np_selectedTextColor="#FB9900"
+                    android:layout_gravity="center_vertical"
+                    app:np_dividerColor="@android:color/transparent"
+                    app:np_textColor="#0B1215"/>
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/timepicker_left"
+                    android:layout_marginStart="8dp"
+                    android:layout_gravity="center_vertical"
+                    app:tint="#FB9900"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
+
+    </LinearLayout>
+
+
+    <!-- Sleep Duration -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_above="@id/btn_continue">
+
+        <TextView
+            android:id="@+id/tvSleepDuration_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/dmsans_regular"
+            android:text="Sleep duration: "
+            android:textColor="#000000"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvSleepDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/dmsans_bold"
+            android:text="9 hrs 30 mins"
+            android:textColor="#1292E5"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Continue Button -->
+    <Button
+        android:id="@+id/btn_continue"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginVertical="8dp"
+        android:layout_marginHorizontal="36dp"
+        android:backgroundTint="@color/menuselected"
+        android:fontFamily="@font/dmsans_bold"
+        android:text="@string/str_continue"
+        android:textColor="@color/white"
+        android:textSize="@dimen/textsize_large18sp" />
+
+</RelativeLayout>

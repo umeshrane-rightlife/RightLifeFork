@@ -325,6 +325,21 @@ class HealthCamBasicDetailsNewActivity : BaseActivity() {
             bottomSheetLayout.animation = slideUpAnimation
         }
 
+        bottomSheetDialog.setOnShowListener { dialog ->
+            val bottomSheet =
+                (dialog as BottomSheetDialog)
+                    .findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                    ?: return@setOnShowListener
+
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+
+            behavior.state = BottomSheetBehavior.STATE_COLLAPSED  // Start collapsed
+            behavior.skipCollapsed = false                        // Allow collapsed state
+            behavior.isFitToContents = false                      // Needed to control peekHeight
+            behavior.peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+            behavior.isDraggable = false                          // Prevent expanding via swipe
+        }
+
         val years = arrayOf(
             "13 years",
             "14 years",

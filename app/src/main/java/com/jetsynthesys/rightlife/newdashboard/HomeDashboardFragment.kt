@@ -2,47 +2,28 @@ package com.jetsynthesys.rightlife.newdashboard
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RelativeLayout
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
-import androidx.health.connect.client.permission.HealthPermission
-import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
-import androidx.health.connect.client.records.BasalMetabolicRateRecord
-import androidx.health.connect.client.records.BloodPressureRecord
-import androidx.health.connect.client.records.BodyFatRecord
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.HeartRateRecord
-import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
-import androidx.health.connect.client.records.OxygenSaturationRecord
-import androidx.health.connect.client.records.RespiratoryRateRecord
-import androidx.health.connect.client.records.RestingHeartRateRecord
-import androidx.health.connect.client.records.SleepSessionRecord
-import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
-import androidx.health.connect.client.records.WeightRecord
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.gson.Gson
 import com.jetsynthesys.rightlife.BaseFragment
+import com.jetsynthesys.rightlife.HealthConnectConstants
 import com.jetsynthesys.rightlife.R
-import com.jetsynthesys.rightlife.ai_package.PermissionManager
 import com.jetsynthesys.rightlife.ai_package.ui.MainAIActivity
-import com.jetsynthesys.rightlife.ai_package.ui.sleepright.fragment.SleepSegmentModel
 import com.jetsynthesys.rightlife.databinding.FragmentHomeDashboardBinding
 import com.jetsynthesys.rightlife.newdashboard.model.AiDashboardResponseMain
 import com.jetsynthesys.rightlife.newdashboard.model.ChecklistResponse
@@ -65,7 +46,6 @@ import com.jetsynthesys.rightlife.ui.utility.DateTimeUtils
 import com.jetsynthesys.rightlife.ui.utility.FeatureFlags
 import com.jetsynthesys.rightlife.ui.utility.disableViewForSeconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -73,49 +53,16 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
 class HomeDashboardFragment : BaseFragment() {
     private var _binding: FragmentHomeDashboardBinding? = null
     private val binding get() = _binding!!
-
-    private val remData: ArrayList<Float> = arrayListOf()
-    private val awakeData: ArrayList<Float> = arrayListOf()
-    private val coreData: ArrayList<Float> = arrayListOf()
-    private val deepData: ArrayList<Float> = arrayListOf()
-    private val formatters = DateTimeFormatter.ISO_DATE_TIME
-    private lateinit var permissionManager: PermissionManager
-    private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            permissionManager.handlePermissionResult(result)
-        }
-
     private lateinit var healthConnectClient: HealthConnectClient
-    private var checklistComplete = true
     private var checkListCount = 0
     private var snapMealId: String = ""
-
-    private val allReadPermissions = setOf(
-        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
-        HealthPermission.getReadPermission(DistanceRecord::class),
-        HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getReadPermission(HeartRateRecord::class),
-        HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
-        HealthPermission.getReadPermission(RestingHeartRateRecord::class),
-        HealthPermission.getReadPermission(RespiratoryRateRecord::class),
-        HealthPermission.getReadPermission(OxygenSaturationRecord::class),
-        HealthPermission.getReadPermission(BloodPressureRecord::class),
-        HealthPermission.getReadPermission(WeightRecord::class),
-        HealthPermission.getReadPermission(BodyFatRecord::class),
-        HealthPermission.getReadPermission(SleepSessionRecord::class),
-        HealthPermission.getReadPermission(ExerciseSessionRecord::class),
-    )
+    private var isWaitingForPermissionReturn = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -129,14 +76,9 @@ class HomeDashboardFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        fetchDashboardData()
-        /*getDashboardChecklist()
-        getDashboardChecklistStatus()*/
-        getAiDashboard()
-        lifecycleScope.launch {
-            delay(1000)
-            getDashboardChecklist()
-            getDashboardChecklistStatus()
+        refreshDashboardData()
+        if (isWaitingForPermissionReturn) {
+            checkHealthPermissionsAndSync()
         }
         (requireActivity() as? HomeNewActivity)?.hideChallengeLayout()
     }
@@ -144,36 +86,138 @@ class HomeDashboardFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupUI()
+        setupClickListeners()
+        setupSwipeRefresh()
+    }
 
-        //    (requireActivity() as? HomeNewActivity)?.showHeader(true)
-        fetchDashboardData()
-        getAiDashboard()
-
-        val swipeRefreshLayout = activity?.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-
-        swipeRefreshLayout?.setOnRefreshListener {
-            // Call your refresh logic
-            fetchDashboardData()
-            getDashboardChecklist()
-            getDashboardChecklistStatus()
-            getAiDashboard()
-            swipeRefreshLayout.isRefreshing = false // Stop the spinner
+    /**
+     * Modern approach: Refresh all data concurrently using Coroutines.
+     * Removes the need for manual delays.
+     */
+    private fun refreshDashboardData() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Launching all requests concurrently
+            launch { getAiDashboard() }
+            launch { getDashboardChecklist() }
+            launch { getDashboardChecklistStatus() }
         }
+    }
 
-        binding.includeChecklist.rlChecklistEatright.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity()
-            } else {
-                ActivityUtils.startEatRightQuestionnaireActivity(requireContext())
+    private fun checkHealthPermissionsAndSync() {
+        val status = HealthConnectClient.getSdkStatus(requireContext())
+        if (status == HealthConnectClient.SDK_AVAILABLE) {
+            healthConnectClient = HealthConnectClient.getOrCreate(requireContext())
+
+            lifecycleScope.launch {
+                val granted = healthConnectClient.permissionController.getGrantedPermissions()
+                // If any permissions are granted now, mark it complete
+                if (granted.isNotEmpty()) {
+                    // Optional: Reset denial counter since they finally said yes
+                    sharedPreferenceManager.setHealthPermissionDenialCount(0)
+                    markHealthSyncChecklistCompleted()
+                    isWaitingForPermissionReturn = false // Reset the flag
+                }
             }
         }
-        binding.includeChecklist.rlChecklistSleepright.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity()
-            } else {
-                ActivityUtils.startThinkRightQuestionnaireActivity(requireContext())
+    }
+
+    /**
+     * Setup static UI elements
+     */
+    private fun setupUI() {
+        binding.tvDateDashboard.text = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault())
+            .format(Calendar.getInstance().time)
+    }
+
+    /**
+     * Centralized Click Listener Logic
+     * Reduces boilerplate for subscription checks and debounce logic.
+     */
+    private fun setupClickListeners() {
+        with(binding.includeChecklist) {
+            rlChecklistEatright.setOnClickListener {
+                it.handleAction { ActivityUtils.startEatRightQuestionnaireActivity(requireContext()) }
+            }
+
+            rlChecklistSleepright.setOnClickListener {
+                it.handleAction { ActivityUtils.startThinkRightQuestionnaireActivity(requireContext()) }
+            }
+
+            rlChecklistSynchealth.setOnClickListener {
+                it.handleAction { checkAndRequestHealthConnect() }
+                AnalyticsLogger.logEvent(
+                    requireContext(),
+                    AnalyticsEvent.Checklist_SyncHealthConnect_Tap
+                )
+            }
+
+            rlChecklistProfile.setOnClickListener {
+                it.handleAction {
+                    val intent = Intent(
+                        requireContext(),
+                        OnboardingQuestionnaireActivity::class.java
+                    ).apply {
+                        putExtra("forProfileChecklist", true)
+                    }
+                    startActivity(intent)
+                }
+            }
+
+            rlChecklistSnapmeal.setOnClickListener {
+                it.handleAction(FeatureFlags.MEAL_SCAN) {
+                    val safeId = snapMealId.ifBlank { sharedPreferenceManager.snapMealId ?: "" }
+                    logAndOpenMeal(safeId)
+                }
+            }
+
+            rlChecklistFacescan.setOnClickListener {
+                it.handleAction(FeatureFlags.FACE_SCAN) { handleFaceScanNavigation() }
+            }
+
+            imgQuestionmarkChecklist.setOnClickListener {
+                it.disableViewForSeconds()
+                DialogUtils.showWhyChecklistMattersDialog(requireContext(), "Here’s Why It Matters")
+                AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.WHY_CHECKLIST_CLICK)
+            }
+            rlChecklistWhyThisDialog.setOnClickListener {
+                it.disableViewForSeconds()
+                AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.FINISH_TO_UNLOCK_CLICK)
+                DialogUtils.showWhyChecklistMattersDialog(requireContext())
+            }
+        }
+
+        // Main Dashboard Cards
+        binding.cardThinkRight.setOnClickListener {
+            handleCardNavigation(AnalyticsEvent.THINK_RIGHT_CLICK) {
+                ActivityUtils.startThinkRightReportsActivity(
+                    requireContext(),
+                    "Not"
+                )
+            }
+        }
+        binding.cardEatRight.setOnClickListener {
+            handleCardNavigation(AnalyticsEvent.EAT_RIGHT_CLICK) {
+                ActivityUtils.startEatRightReportsActivity(
+                    requireContext(),
+                    "Not"
+                )
+            }
+        }
+        binding.cardMoveRight.setOnClickListener {
+            handleCardNavigation(AnalyticsEvent.MOVE_RIGHT_CLICK) {
+                ActivityUtils.startMoveRightReportsActivity(
+                    requireContext(),
+                    "Not"
+                )
+            }
+        }
+        binding.cardSleepRight.setOnClickListener {
+            handleCardNavigation(AnalyticsEvent.SLEEP_RIGHT_CLICK) {
+                ActivityUtils.startSleepRightReportsActivity(
+                    requireContext(),
+                    "Not"
+                )
             }
         }
 
@@ -181,227 +225,68 @@ class HomeDashboardFragment : BaseFragment() {
             it.disableViewForSeconds()
             startActivity(Intent(requireContext(), PastReportActivity::class.java))
         }
-        binding.includeChecklist.imgQuestionmarkChecklist.setOnClickListener {
-            it.disableViewForSeconds()
-            DialogUtils.showWhyChecklistMattersDialog(requireContext(), "Here’s Why It Matters")
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.WHY_CHECKLIST_CLICK)/*startActivity(Intent(this@HomeDashboardActivity, SubscriptionPlanListActivity::class.java).apply {
-                //putExtra("SUBSCRIPTION_TYPE", "SUBSCRIPTION_PLAN")
-                //putExtra("SUBSCRIPTION_TYPE", "FACIAL_SCAN")
-            })*/
-        }
-        binding.includeChecklist.rlChecklistWhyThisDialog.setOnClickListener {
-            it.disableViewForSeconds()
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.FINISH_TO_UNLOCK_CLICK)
-            DialogUtils.showWhyChecklistMattersDialog(requireContext())
-        }
-
-        binding.includeChecklist.rlChecklistSynchealth.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity()
-            } else {
-                val availabilityStatus = HealthConnectClient.getSdkStatus(requireContext())
-                if (availabilityStatus == HealthConnectClient.SDK_AVAILABLE) {
-                    healthConnectClient = HealthConnectClient.getOrCreate(requireContext())
-                    lifecycleScope.launch {
-                        requestPermissionsAndReadAllData()
-
-                    }
-                } else {
-                    installHealthConnect(requireContext())
-                }
-            }
-
-            AnalyticsLogger.logEvent(
-                requireContext(),
-                AnalyticsEvent.Checklist_SyncHealthConnect_Tap
-            )
-        }
-        binding.includeChecklist.rlChecklistProfile.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity()
-            } else {
-                val intent = Intent(requireContext(), OnboardingQuestionnaireActivity::class.java)
-                intent.putExtra("forProfileChecklist", true)
-                startActivity(intent)
-            }
-        }
-        binding.includeChecklist.rlChecklistSnapmeal.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity(FeatureFlags.MEAL_SCAN)
-            } else {
-                /*permissionManager = PermissionManager(activity = requireActivity(), launcher = permissionLauncher, onPermissionGranted = {
-                    // If local value empty, try from shared prefs
-                    val safeSnapMealId = if (snapMealId.isNotBlank()) snapMealId
-                    else sharedPreferenceManager.snapMealId ?: ""
-
-                    logAndOpenMeal(safeSnapMealId)
-                }, onPermissionDenied = {
-                    Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
-                })
-                permissionManager.checkAndRequestPermissions()*/
-                // If local value empty, try from shared prefs
-                val safeSnapMealId = if (snapMealId.isNotBlank()) snapMealId
-                else sharedPreferenceManager.snapMealId ?: ""
-                logAndOpenMeal(safeSnapMealId)
-            }
-        }
-
-        binding.includeChecklist.rlChecklistFacescan.setOnClickListener {
-            it.disableViewForSeconds()
-            if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
-                freeTrialDialogActivity(FeatureFlags.FACE_SCAN)
-            } else {
-                val activity =
-                    requireActivity() as HomeNewActivity/*val isHealthCamFree = activity.isHealthCamFree*/
-
-                sharedPreferenceManager.userProfile?.homeServices?.find { it.title == "HealthCam" }?.isFree
-                    ?: false
-
-                val isFacialScanService = sharedPreferenceManager.userProfile.facialScanService
-                    ?: false
-
-
-                if (DashboardChecklistManager.facialScanStatus) {
-                    startActivity(Intent(requireContext(), NewHealthCamReportActivity::class.java))
-                } else {
-                    if (isFacialScanService) {
-
-                        ActivityUtils.startFaceScanActivity(requireContext())
-                    } else {
-                        activity.showSwitchAccountDialog(requireContext(), "", "")
-                    }
-                }
-
-            }
-        }
-
-        binding.cardThinkRight.setOnClickListener {
-            it.disableViewForSeconds()
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.THINK_RIGHT_CLICK)
-            if (checkTrailEndedAndShowDialog()) {
-                ActivityUtils.startThinkRightReportsActivity(requireContext(), "Not")
-            }
-        }
-        binding.cardEatRight.setOnClickListener {
-            it.disableViewForSeconds()
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.EAT_RIGHT_CLICK)
-            if (checkTrailEndedAndShowDialog()) {
-                ActivityUtils.startEatRightReportsActivity(requireContext(), "Not")
-            }
-        }
-
-        binding.cardMoveRight.setOnClickListener {
-            it.disableViewForSeconds()
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.MOVE_RIGHT_CLICK)
-            if (checkTrailEndedAndShowDialog()) {
-                ActivityUtils.startMoveRightReportsActivity(requireContext(), "Not")
-            }
-        }
-        binding.cardSleepRight.setOnClickListener {
-            it.disableViewForSeconds()
-            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.SLEEP_RIGHT_CLICK)
-            if (checkTrailEndedAndShowDialog()) {
-                ActivityUtils.startSleepRightReportsActivity(requireContext(), "Not")
-            }
-        }
-
-        val todayDate = SimpleDateFormat(
-            "EEEE, d MMMM",
-            Locale.getDefault()
-        ).format(Calendar.getInstance().time)
-
-        binding.tvDateDashboard.text = todayDate
-
-        /*binding.trialExpiredLayout.trialExpiredLayout.visibility =
-            if ((requireActivity() as? HomeNewActivity)?.isTrialExpired == true) View.VISIBLE else View.GONE*/
-
-
     }
 
-    /*  @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-      private suspend fun requestPermissionsAndReadAllData() {
-          try {
-              val granted = healthConnectClient.permissionController.getGrantedPermissions()
-              if (allReadPermissions.all { it in granted }) {
-  //                fetchAllHealthData()
-                  CommonAPICall.updateChecklistStatus(
-                      requireContext(), "sync_health_data", AppConstants.CHECKLIST_COMPLETED
-                  ) { status ->
-                      if (status)
-                          lifecycleScope.launch {
-                              getDashboardChecklist()
-                          }
-                  }
+    private fun setupSwipeRefresh() {
+        activity?.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)?.apply {
+            setOnRefreshListener {
+                refreshDashboardData()
+                isRefreshing = false
+            }
+        }
+    }
 
-              } else {
-                  requestPermissionsLauncher.launch(allReadPermissions.toTypedArray())
-              }
-          } catch (e: Exception) {
-              e.printStackTrace()
-          }
-      }
+    // --- Helper Extensions and Logic ---
 
-      @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-      private val requestPermissionsLauncher =
-          registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-              if (permissions.values.all { it }) {
-                  lifecycleScope.launch {
-                      CommonAPICall.updateChecklistStatus(
-                          requireContext(), "sync_health_data", AppConstants.CHECKLIST_COMPLETED
-                      ) { status ->
-                          if (status)
-                              lifecycleScope.launch {
-                                  getDashboardChecklist()
-                              }
-                      }
-                  }
-                  Toast.makeText(requireContext(), "Permissions Granted", Toast.LENGTH_SHORT).show()
-              } else {
-                  Toast.makeText(requireContext(), "Permissions Denied", Toast.LENGTH_SHORT).show()
-              }
-          }*/
+    /**
+     * Extension function to handle common checklist click logic:
+     * 1. Debounce (disable for seconds)
+     * 2. Subscription check
+     * 3. Feature flag handling
+     */
+    private fun View.handleAction(feature: String = "", action: () -> Unit) {
+        this.disableViewForSeconds()
+        if (sharedPreferenceManager.userProfile?.user_sub_status == 0) {
+            freeTrialDialogActivity(feature)
+        } else {
+            action()
+        }
+    }
 
-//    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-//    private suspend fun requestPermissionsAndReadAllData()
-//    {
-//        try
-//        {
-//            // Get already granted permissions
-//            val granted = healthConnectClient.permissionController.getGrantedPermissions()
-//
-//            if (allReadPermissions.all { it in granted })
-//            {
-//                // ✅ All permissions already granted → mark checklist completed
-//                markHealthSyncChecklistCompleted()
-//            } else
-//            {
-//                // 🚀 Ask user for permissions
-//                requestPermissionsLauncher.launch(allReadPermissions.toTypedArray())
-//            }
-//        } catch (e: Exception)
-//        {
-//            e.printStackTrace()
-//            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-//        }
-//    }
+    private fun handleCardNavigation(event: String, navigation: () -> Unit) {
+        AnalyticsLogger.logEvent(requireContext(), event)
+        if (checkTrailEndedAndShowDialog()) {
+            navigation()
+        }
+    }
+
+    private fun handleFaceScanNavigation() {
+        val isFacialScanService = sharedPreferenceManager.userProfile.facialScanService ?: false
+        if (DashboardChecklistManager.facialScanStatus) {
+            startActivity(Intent(requireContext(), NewHealthCamReportActivity::class.java))
+        } else if (isFacialScanService) {
+            ActivityUtils.startFaceScanActivity(requireContext())
+        } else {
+            (requireActivity() as HomeNewActivity).showSwitchAccountDialog(requireContext(), "", "")
+        }
+    }
+
+    private fun checkAndRequestHealthConnect() {
+        if (HealthConnectClient.getSdkStatus(requireContext()) == HealthConnectClient.SDK_AVAILABLE) {
+            healthConnectClient = HealthConnectClient.getOrCreate(requireContext())
+            viewLifecycleOwner.lifecycleScope.launch { requestPermissionsAndReadAllData() }
+        } else {
+            installHealthConnect(requireContext())
+        }
+    }
 
     private suspend fun requestPermissionsAndReadAllData() {
         try {
             val granted = healthConnectClient.permissionController.getGrantedPermissions()
-            if (allReadPermissions.all { it in granted }) {
+            if (HealthConnectConstants.allReadPermissions.all { it in granted }) {
                 markHealthSyncChecklistCompleted()
-                /*val getVisit = SharedPreferenceManager.getInstance(requireContext()).syncFirstVisit
-                if (getVisit == "") {
-                    fetchSecondChunk()
-                    fetchThirdChunk()
-                    fetchForthChunk()
-                    SharedPreferenceManager.getInstance(requireContext()).saveSyncFirstVisit("1")
-                }*/
             } else {
-                requestPermissionsLauncher.launch(allReadPermissions)
+                requestPermissionsLauncher.launch(HealthConnectConstants.allReadPermissions)
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
@@ -418,7 +303,7 @@ class HomeDashboardFragment : BaseFragment() {
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
             try {
                 lifecycleScope.launch {
-                    if (granted.containsAll(allReadPermissions)) {
+                    if (granted.containsAll(HealthConnectConstants.allReadPermissions)) {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(context, "Permissions Granted", Toast.LENGTH_SHORT)
                                 .show()
@@ -434,17 +319,56 @@ class HomeDashboardFragment : BaseFragment() {
 
                     } else {
                         // User explicitly denied ALL permissions. This is a failure case.
-                        Toast.makeText(
-                            requireContext(),
-                            "Permissions were denied. Health data cannot be synced.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        handlePermissionDenial()
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+
+    private fun handlePermissionDenial() {
+        val currentDenialCount = sharedPreferenceManager.healthPermissionDenialCount
+        val newCount = currentDenialCount + 1
+        sharedPreferenceManager.setHealthPermissionDenialCount(newCount)
+
+        if (newCount >= 2) {
+            // User has denied twice or more, show the permanent rationale
+            showSettingsRationaleDialog()
+        } else {
+            Toast.makeText(
+                requireContext(),
+                "Permissions are required to sync your health data.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun showSettingsRationaleDialog() {
+        DialogUtils.showConfirmationDialog(
+            context = requireContext(),
+            title = "Sync Connection Required",
+            message = "You have declined health permissions. To track your progress automatically, please enable them in the Health Connect settings.",
+            positiveButtonText = "Open Settings",
+            negativeButtonText = "Not Now",
+            onPositiveClick = { openHealthConnectSettings() }
+        )
+    }
+
+    private fun openHealthConnectSettings() {
+        isWaitingForPermissionReturn = true // Set the flag here
+        try {
+            // Best practice: Try Health Connect specific settings first
+            val intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Fallback: App Info settings
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+            startActivity(intent)
+        }
+    }
 
     /**
      * ✅ Helper function to update checklist on server ONLY after permission confirmed.
@@ -485,7 +409,6 @@ class HomeDashboardFragment : BaseFragment() {
         }
     }
 
-    //getDashboardChecklist
     private fun getDashboardChecklist() {
         // Make the API call
         val call = apiService.getDashboardChecklist(sharedPreferenceManager.accessToken)
@@ -513,155 +436,124 @@ class HomeDashboardFragment : BaseFragment() {
         })
     }
 
+    // A simple data helper to map API fields to UI components
+    private data class ChecklistTask(
+        val status: String?,
+        val iconView: ImageView,
+        val layout: View,
+        val eventName: String,
+        val shouldDisableOnClick: Boolean = true
+    )
+
     private fun handleChecklistResponse(checklistResponse: ChecklistResponse?) {
+        val data = checklistResponse?.data ?: return
 
-        // profile
-        setStatusOfChecklist(
-            checklistResponse?.data?.profile!!,
-            binding.includeChecklist.imgCheck,
-            binding.includeChecklist.rlChecklistProfile
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.PROFILE_STATUS,
-            mapOf(AnalyticsParam.PROFILE_STATUS to checklistResponse.data.profile)
-        )
-        //snap Meal
-        setStatusOfChecklist(
-            checklistResponse.data.meal_snap,
-            binding.includeChecklist.imgCheckSnapmeal,
-            binding.includeChecklist.rlChecklistSnapmeal
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.SNAP_MEAL_STATUS,
-            mapOf(AnalyticsEvent.SNAP_MEAL_STATUS to checklistResponse.data.meal_snap)
-        )
-        //sync health
-        setStatusOfChecklist(
-            checklistResponse.data.sync_health_data,
-            binding.includeChecklist.imgCheckSynchealth,
-            binding.includeChecklist.rlChecklistSynchealth
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.SYNC_DATA_STATUS,
-            mapOf(AnalyticsEvent.SYNC_DATA_STATUS to checklistResponse.data.meal_snap)
-        )
-        // face Scan
-        setStatusOfChecklist(
-            checklistResponse.data.vital_facial_scan,
-            binding.includeChecklist.imgCheckFacescan,
-            binding.includeChecklist.rlChecklistFacescan,
-            false
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.FACIAL_SCAN_STATUS,
-            mapOf(AnalyticsEvent.FACIAL_SCAN_STATUS to checklistResponse.data.vital_facial_scan)
-        )
-        // sleep right question
-        setStatusOfChecklist(
-            checklistResponse.data.unlock_sleep,
-            binding.includeChecklist.imgCheckSleepright,
-            binding.includeChecklist.rlChecklistSleepright
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.TR_SR_ASSESSMENT_STATUS,
-            mapOf(AnalyticsEvent.TR_SR_ASSESSMENT_STATUS to checklistResponse.data.meal_snap)
-        )
-        // Eat right question
-        setStatusOfChecklist(
-            checklistResponse.data.discover_eating,
-            binding.includeChecklist.imgCheckEatright,
-            binding.includeChecklist.rlChecklistEatright
-        )
-        AnalyticsLogger.logEvent(
-            requireContext(),
-            AnalyticsEvent.ER_MR_ASSESSMENT_STATUS,
-            mapOf(AnalyticsEvent.ER_MR_ASSESSMENT_STATUS to checklistResponse.data.meal_snap)
-        )
-        binding.includeChecklist.tvChecklistNumber.text = "$checkListCount of 6 tasks completed"
-        // Chceklist completion logic
-        if (DashboardChecklistManager.checklistStatus) {
-            binding.llDashboardMainData.visibility = View.VISIBLE
-            binding.includeChecklist.llLayoutChecklist.visibility = View.GONE
-            if (sharedPreferenceManager.firstTimeCheckListEventLogged) {
-                sharedPreferenceManager.firstTimeCheckListEventLogged = false
-                AnalyticsLogger.logEvent(
-                    requireContext(),
-                    AnalyticsEvent.CHECKLIST_COMPLETE,
-                    mapOf(AnalyticsParam.CHECKLIST_COMPLETE to true)
-                )
-            }
-            /*
-                    val activity = requireActivity() as HomeNewActivity
-                    activity.getUserDetails()*/
-            if (sharedPreferenceManager.firstTimeForHomeDashboard) {
-                sharedPreferenceManager.firstTimeForHomeDashboard = false
-                AnalyticsLogger.logEvent(
-                    requireContext(),
-                    AnalyticsEvent.MyHealth_Dashboard_FirstOpen
-                )
-            }
+        // 1. Reset completion counter
+        checkListCount = 0
 
-        } else {
-            binding.llDashboardMainData.visibility = View.GONE
-            binding.includeChecklist.llLayoutChecklist.visibility = View.VISIBLE
-        }/*checklistResponse.data.snap_mealId.let { snapMealId ->
-            sharedPreferenceManager.saveSnapMealId(snapMealId)
-            this.snapMealId = snapMealId
-        }*/
-        val mealId = checklistResponse.data.snap_mealId
-        sharedPreferenceManager.saveSnapMealId(mealId)
-        this.snapMealId = mealId
-        checklistResponse.data.snap_mealId.let { snapMealId ->
-            if (!snapMealId.isNullOrEmpty()) {
-                sharedPreferenceManager.saveSnapMealId(snapMealId)
-                this.snapMealId = snapMealId
-            } else {
-                sharedPreferenceManager.saveSnapMealId("")
-                this.snapMealId = ""
-            }
+        // 2. Map tasks to their views and events
+        val tasks = listOf(
+            ChecklistTask(
+                data.profile,
+                binding.includeChecklist.imgCheck,
+                binding.includeChecklist.rlChecklistProfile,
+                AnalyticsEvent.PROFILE_STATUS
+            ),
+            ChecklistTask(
+                data.meal_snap,
+                binding.includeChecklist.imgCheckSnapmeal,
+                binding.includeChecklist.rlChecklistSnapmeal,
+                AnalyticsEvent.SNAP_MEAL_STATUS
+            ),
+            ChecklistTask(
+                data.sync_health_data,
+                binding.includeChecklist.imgCheckSynchealth,
+                binding.includeChecklist.rlChecklistSynchealth,
+                AnalyticsEvent.SYNC_DATA_STATUS
+            ),
+            ChecklistTask(
+                data.vital_facial_scan,
+                binding.includeChecklist.imgCheckFacescan,
+                binding.includeChecklist.rlChecklistFacescan,
+                AnalyticsEvent.FACIAL_SCAN_STATUS,
+                false
+            ),
+            ChecklistTask(
+                data.unlock_sleep,
+                binding.includeChecklist.imgCheckSleepright,
+                binding.includeChecklist.rlChecklistSleepright,
+                AnalyticsEvent.TR_SR_ASSESSMENT_STATUS
+            ),
+            ChecklistTask(
+                data.discover_eating,
+                binding.includeChecklist.imgCheckEatright,
+                binding.includeChecklist.rlChecklistEatright,
+                AnalyticsEvent.ER_MR_ASSESSMENT_STATUS
+            )
+        )
+
+        // 3. Process each task efficiently
+        tasks.forEach { task ->
+            updateTaskUI(task)
+            AnalyticsLogger.logEvent(
+                requireContext(),
+                task.eventName,
+                mapOf("status" to (task.status ?: "UNKNOWN"))
+            )
         }
+
+        // 4. Update Header Text (Modern string interpolation)
+        binding.includeChecklist.tvChecklistNumber.text =
+            getString(R.string.tasks_completed_format, checkListCount, 6)
+
+        // 5. Visibility Logic (Simplified)
+        val isComplete = DashboardChecklistManager.checklistStatus
+        binding.llDashboardMainData.visibility = if (isComplete) View.VISIBLE else View.GONE
+        binding.includeChecklist.llLayoutChecklist.visibility =
+            if (isComplete) View.GONE else View.VISIBLE
+
+        // 6. Log completion events only if needed
+        handleFirstTimeEvents(isComplete)
+
+        // 7. SnapMeal ID handling (Modern null-coalescing)
+        val safeMealId = data.snap_mealId ?: ""
+        this.snapMealId = safeMealId
+        sharedPreferenceManager.saveSnapMealId(safeMealId)
 
         getDashboardChecklistStatus()
     }
 
+    private fun updateTaskUI(task: ChecklistTask) {
+        val (iconRes, isDone) = when (task.status) {
+            "COMPLETED" -> R.drawable.ic_checklist_complete to true
+            "INPROGRESS" -> R.drawable.ic_checklist_pending to false
+            else -> R.drawable.ic_checklist_tick_bg to false
+        }
 
-    private fun setStatusOfChecklist(
-        profile: String,
-        imageView: ImageView,
-        relativeLayout: RelativeLayout,
-        disableclick: Boolean = true,
-    ) {
-        when (profile) {
-            "INITIAL" -> {
-                imageView.setImageResource(R.drawable.ic_checklist_tick_bg)
-                checklistComplete = false
+        task.iconView.setImageResource(iconRes)
+
+        if (isDone) {
+            checkListCount++
+            if (task.shouldDisableOnClick) {
+                task.layout.setOnClickListener(null)
+                task.layout.isClickable = false
             }
+        }
+    }
 
-            "INPROGRESS" -> {
-                imageView.setImageResource(R.drawable.ic_checklist_pending)
-                checklistComplete = false
-            }
+    private fun handleFirstTimeEvents(isComplete: Boolean) {
+        if (isComplete && sharedPreferenceManager.firstTimeCheckListEventLogged) {
+            sharedPreferenceManager.firstTimeCheckListEventLogged = false
+            AnalyticsLogger.logEvent(
+                requireContext(),
+                AnalyticsEvent.CHECKLIST_COMPLETE,
+                mapOf(AnalyticsParam.CHECKLIST_COMPLETE to true)
+            )
+        }
 
-            "COMPLETED" -> {
-                imageView.setImageResource(R.drawable.ic_checklist_complete)
-                if (profile.equals("COMPLETED") && profile.equals("COMPLETED")) {
-
-                }
-                if (disableclick) {
-                    relativeLayout.setOnClickListener(null)
-                }
-                checkListCount++
-            }
-
-            else -> {
-                imageView.setImageResource(R.drawable.ic_checklist_tick_bg)
-                checklistComplete = false
-            }
+        if (sharedPreferenceManager.firstTimeForHomeDashboard) {
+            sharedPreferenceManager.firstTimeForHomeDashboard = false
+            AnalyticsLogger.logEvent(requireContext(), AnalyticsEvent.MyHealth_Dashboard_FirstOpen)
         }
     }
 
@@ -746,8 +638,7 @@ class HomeDashboardFragment : BaseFragment() {
                                     binding.llDashboardMainData.visibility = View.VISIBLE
                                     binding.includeChecklist.llLayoutChecklist.visibility =
                                         View.GONE
-                                    binding.llDiscoverLayout.visibility = View.GONE/*val activity = requireActivity() as HomeNewActivity
-                                                 activity.fetchHealthDataFromHealthConnect();*/
+                                    binding.llDiscoverLayout.visibility = View.GONE
                                 } else {
                                     binding.llDashboardMainData.visibility = View.GONE
                                     binding.includeChecklist.llLayoutChecklist.visibility =
@@ -788,71 +679,12 @@ class HomeDashboardFragment : BaseFragment() {
             })
     }
 
-    private fun setIfNotNullOrBlank(textView: TextView, value: String?) {
-        if (!value.isNullOrBlank()) {
-            textView.text = value
-        }
-    }
-
-    private fun setIfNotNullOrBlankWithCalories(textView: TextView, value: String?) {
-        if (!value.isNullOrBlank()) {
-            val formattedValue = if (value.contains("kcal", ignoreCase = true)) {
-                value
-            } else {
-                "$value Kcal"
-            }
-            textView.text = formattedValue
-        }
-    }
-
     private fun handleDescoverList(aiDashboardResponseMain: AiDashboardResponseMain?) {
         if (aiDashboardResponseMain?.data?.discoverData != null) {
             setHealthNoDataCardAdapter(aiDashboardResponseMain.data.discoverData)
         } else {
             binding.llDiscoverLayout.visibility = View.GONE
         }
-    }
-
-    private fun setStageGraphFromSleepRightModule(
-        rem: String,
-        core: String,
-        deep: String,
-        awake: String
-    ) {
-        val sleepData: ArrayList<SleepSegmentModel> = arrayListOf()
-        val durations = mapOf(
-            "REM" to parseSleepDuration(rem),
-            "Core" to parseSleepDuration(core),
-            "Deep" to parseSleepDuration(deep),
-            "Awake" to parseSleepDuration(awake)
-        )
-
-        val totalDuration = durations.values.sum()
-        var currentPosition = 0f
-
-        durations.forEach { (stage, duration) ->
-            val start = currentPosition / totalDuration
-            val end = (currentPosition + duration) / totalDuration
-            val color = when (stage) {
-                "REM" -> Color.parseColor("#63D4FE")
-                "Deep" -> Color.parseColor("#5E5CE6")
-                "Core" -> Color.parseColor("#0B84FF")
-                "Awake" -> Color.parseColor("#FF6650")
-                else -> Color.GRAY
-            }
-            sleepData.add(SleepSegmentModel(start, end, color, 110f))
-            currentPosition += duration
-        }
-    }
-
-    private fun parseSleepDuration(durationStr: String): Float {
-        val hourRegex = Regex("(\\d+)h")
-        val minRegex = Regex("(\\d+)min")
-
-        val hours = hourRegex.find(durationStr)?.groupValues?.get(1)?.toFloatOrNull() ?: 0f
-        val minutes = minRegex.find(durationStr)?.groupValues?.get(1)?.toFloatOrNull() ?: 0f
-
-        return hours * 60 + minutes
     }
 
     private fun setHealthNoDataCardAdapter(discoverData: List<DiscoverDataItem>?) {
@@ -885,34 +717,6 @@ class HomeDashboardFragment : BaseFragment() {
         } else {
             binding.llDiscoverLayout.visibility = View.VISIBLE
         }
-    }
-
-    private fun formatDuration(durationHours: Float): String {
-        val hours = durationHours.toInt()
-        val minutes = ((durationHours - hours) * 60).toInt()
-        return if (hours > 0) {
-            "$hours hr $minutes mins"
-        } else {
-            "$minutes mins"
-        }
-    }
-
-    private fun extractNumericValues(input: String): Pair<String, String> {
-        val parts = input.split("/")
-
-        if (parts.size < 2) {
-            throw IllegalArgumentException("Invalid format: $input")
-        }
-
-        val firstValue = parts[0].trim().replace(Regex("[^0-9.]"), "")
-        val secondValue = parts[1].trim().replace(Regex("[^0-9.]"), "")
-
-        return Pair(firstValue, secondValue)
-    }
-
-    private fun calculatePercentage(current: Int, total: Int): Int {
-        if (total == 0) return 0 // Avoid division by zero
-        return ((current.toFloat() / total.toFloat()) * 100).toInt()
     }
 
     private fun checkTrailEndedAndShowDialog(): Boolean {
@@ -949,35 +753,6 @@ class HomeDashboardFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    fun convertTo12HourZoneFormat(input: String): String {
-        lateinit var inputFormatter: DateTimeFormatter
-        if (input.length > 21) {
-            inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
-        } else {
-            inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-        }
-        val outputFormatter = DateTimeFormatter.ofPattern("hh:mm a") // 12-hour format with AM/PM
-
-        // Parse as LocalDateTime (no time zone info)
-        val utcDateTime = LocalDateTime.parse(input, inputFormatter)
-
-        // Convert to UTC ZonedDateTime
-        val utcZoned = utcDateTime.atZone(ZoneId.of("UTC"))
-
-        // Convert to system local time zone
-        val localZoned = utcZoned.withZoneSameInstant(ZoneId.systemDefault())
-
-        return outputFormatter.format(localZoned)
-    }
-
-    fun formatValue(value: Double): String {
-        return if (value >= 1000) {
-            String.format("%.1fk", value / 1000) // 1 decimal ke saath
-        } else {
-            value.toInt().toString() // normal integer
-        }
     }
 
     private fun setChecklistRowArrow(isAccessible: Boolean) {

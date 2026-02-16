@@ -27,7 +27,6 @@ import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
@@ -69,6 +68,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.jetsynthesys.rightlife.BaseActivity
 import com.jetsynthesys.rightlife.BuildConfig
+import com.jetsynthesys.rightlife.HealthConnectConstants
 import com.jetsynthesys.rightlife.MainApplication
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.RetrofitData.ApiClient
@@ -127,6 +127,8 @@ import com.jetsynthesys.rightlife.ui.challenge.ScoreColorHelper.getColorCode
 import com.jetsynthesys.rightlife.ui.challenge.ScoreColorHelper.setSeekBarProgressColor
 import com.jetsynthesys.rightlife.ui.challenge.pojo.DailyScoreResponse
 import com.jetsynthesys.rightlife.ui.contentdetailvideo.ContentDetailsActivity
+import com.jetsynthesys.rightlife.ui.deeplink.DeepLinkTarget
+import com.jetsynthesys.rightlife.ui.deeplink.DeepLinkTarget.Companion.EXTRA_DEEP_LINK_TARGET
 import com.jetsynthesys.rightlife.ui.healthcam.NewHealthCamReportActivity
 import com.jetsynthesys.rightlife.ui.jounal.new_journal.JournalListActivity
 import com.jetsynthesys.rightlife.ui.mindaudit.MASuggestedAssessmentActivity
@@ -168,87 +170,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 class HomeNewActivity : BaseActivity() {
-    // for deep links
-    companion object {
-        const val EXTRA_DEEP_LINK_TARGET = "EXTRA_DEEP_LINK_TARGET"
-        const val EXTRA_DEEP_LINK_DETAIL_ID = "EXTRA_DEEP_LINK_DETAIL_ID"
-
-        const val TARGET_HOME = "home"
-        const val TARGET_MY_HEALTH = "my_health"
-
-        const val TARGET_MEAL_LOG = "meal_log"
-
-        const val TARGET_PROFILE = "profile"
-
-        // add more as needed…
-        const val TARGET_CATEGORY_LIST = "categorylist"
-        const val TARGET_AI_REPORT = "ai-report"
-        const val TARGET_MIND_AUDIT = "mind-audit"
-
-        //Explore Button
-        const val TARGET_THINK_EXPLORE = "thinkright-explore"
-        const val TARGET_EAT_EXPLORE = "eatright-explore"
-        const val TARGET_SLEEP_EXPLORE = "sleepright-explore"
-        const val TARGET_MOVE_EXPLORE = "moveright-explore"
-        const val TARGET_MOVERIGHT_HOME = "moveright-home"
-        const val TARGET_WORKOUT_LOG_DEEP = "workoutlog-deep"
-        const val TARGET_EATRIGHT_HOME = "eatright-home"
-        const val TARGET_SLEEPRIGHT_HOME = "sleepright-home"
-        const val TARGET_WEIGHT_LOG_DEEP = "weight-log-deep"
-        const val TARGET_WATER_LOG_DEEP = "water-log-deep"
-        const val TARGET_SNAP_MEAL_DEEP = "snap-meal-deep"
-        const val TARGET_FOOD_LOG_DEEP = "food-log-deep"
-        const val TARGET_SLEEP_LOG_DEEP = "sleep-log-deep"
-        const val TARGET_THINKRIGHT_HOME = "thinkright-home"
-
-        // Quick link section
-        const val TARGET_FACE_SCAN = "face-scan"
-        const val TARGET_SNAP_MEAL = "snap-meal"
-        const val TARGET_SLEEP_SOUND = "sleep-sound"
-        const val TARGET_SLEEP_SOUND_PLAYLIST = "sleep-sound/playlist"
-        const val TARGET_AFFIRMATION = "affirmation"
-        const val TARGET_AFFIRMATION_PLAYLIST = "affirmationPlaylist"
-        const val TARGET_JOURNAL = "journal"
-        const val TARGET_BREATHING = "breathing"
-
-        const val TARGET_BREATHING_ALTERNATE = "breathing-alternate"
-        const val TARGET_BREATHING_BOX = "breathing-boxbreathing"
-        const val TARGET_BREATHING_CUSTOM = "breathing-custom"
-        const val TARGET_BREATHING_4_7_8 = "breathing-4-7-8"
-
-        const val TARGET_ACTIVITY_LOG = "activity-log"
-        const val TARGET_WEIGHT_LOG = "weight-log"
-        const val TARGET_WATER_LOG = "water-log"
-        const val TARGET_SLEEP_LOG = "sleep-log"
-        const val TARGET_FOOD_LOG = "food-log"
-
-
-        // Content
-        const val TARGET_JUMPBACK = "jumpback"
-        const val TARGET_SAVED_ITEMS = "saveditems"
-
-        // Challenge
-        const val TARGET_CHALLENGE_HOME = "challenge-home"
-        const val TARGET_CHALLENGE_LEADERBOARD = "challenge-leaderboard"
-
-        const val TARGET_SUBSCRIPTION_PLAN = "plans/SUBSCRIPTION_PLAN"
-        const val TARGET_BOOSTER_PLAN = "plans/BOOSTER_PLAN"
-
-        //Mind Audit Info
-        const val TARGET_MIND_AUDIT_PHQ9 = "mind-audit/phq9Info"
-        const val TARGET_MIND_AUDIT_GAD7 = "mind-audit/GAD7"
-        const val TARGET_MIND_AUDIT_OHQ = "mind-audit/ohq"
-        const val TARGET_MIND_AUDIT_CAS = "mind-audit/cas"
-        const val TARGET_MIND_AUDIT_DASS21 = "mind-audit/dass21"
-        const val TARGET_ARTICLE = "article"
-        const val TARGET_AUDIO = "audio"
-        const val TARGET_VIDEO = "video"
-
-
-    }
-
     // 🔹 Deeplink readiness flags
-    private var pendingDeepLinkTarget: String? = null
+    private var pendingDeepLinkTarget: DeepLinkTarget? = null
     private var isUserProfileLoaded = false
     var isCategoryModuleLoaded = false
     private var isChecklistLoaded = false
@@ -257,32 +180,30 @@ class HomeNewActivity : BaseActivity() {
     private var syncStatus = false
     private var isFirstTime = true
 
-    private fun isInitialDataReadyFor(target: String): Boolean {
+    private fun isInitialDataReadyFor(target: DeepLinkTarget): Boolean {
         // For simple navigation, no need to wait
         return when (target) {
-            TARGET_HOME,
-            TARGET_MY_HEALTH -> true
+            DeepLinkTarget.HOME,
+            DeepLinkTarget.MY_HEALTH -> true
 
             // Features that depend on user profile & checklist
-            TARGET_JOURNAL,
-            TARGET_MEAL_LOG,
-            TARGET_BREATHING,
-            TARGET_SLEEP_SOUND,
-            TARGET_SLEEP_SOUND_PLAYLIST,
-            TARGET_PROFILE -> {
+            DeepLinkTarget.JOURNAL,
+            DeepLinkTarget.MEAL_LOG,
+            DeepLinkTarget.BREATHING,
+            DeepLinkTarget.SLEEP_SOUND,
+            DeepLinkTarget.SLEEP_SOUND_PLAYLIST,
+            DeepLinkTarget.PROFILE,
+            DeepLinkTarget.CHALLENGE_HOME,
+            DeepLinkTarget.CHALLENGE_LEADERBOARD -> {
                 isUserProfileLoaded && isChecklistLoaded
             }
 
-            TARGET_CATEGORY_LIST -> {
+            DeepLinkTarget.CATEGORY_LIST -> {
                 isCategoryModuleLoaded
             }
 
-            TARGET_CHALLENGE_HOME -> isUserProfileLoaded && isChecklistLoaded
-
-            TARGET_CHALLENGE_LEADERBOARD -> isUserProfileLoaded && isChecklistLoaded
-
             else -> {
-                // By default, be conservative
+                // By default, be conservative (includes logs, plans, and mind audit)
                 isUserProfileLoaded && isChecklistLoaded
             }
         }
@@ -298,10 +219,11 @@ class HomeNewActivity : BaseActivity() {
         }
     }
 
-    private fun handleDeepLinkTarget(target: String?) {
+    private fun handleDeepLinkTarget(target: DeepLinkTarget?) {
         if (target == null) return
 
         // If data not ready for this target, just store it and return
+        // Note: If isInitialDataReadyFor still takes a String, use target.name or target.slug
         if (!isInitialDataReadyFor(target)) {
             pendingDeepLinkTarget = target
             return
@@ -309,25 +231,18 @@ class HomeNewActivity : BaseActivity() {
 
         // ✅ Data ready – now actually act
         when (target) {
-
-            TARGET_HOME -> {
+            DeepLinkTarget.HOME -> {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.fragmentContainer, HomeExploreFragment())
                     .commit()
                 updateMenuSelection(R.id.menu_home)
             }
 
-            TARGET_MY_HEALTH -> {
+            DeepLinkTarget.MY_HEALTH -> {
                 myHealthFragmentSelected()
             }
 
-            /*   TARGET_JOURNAL -> {
-                   if (checkTrailEndedAndShowDialog()) {
-                       ActivityUtils.startJournalListActivity(this)
-                   }
-               }*/
-
-            TARGET_MEAL_LOG -> {
+            DeepLinkTarget.MEAL_LOG -> {
                 AnalyticsLogger.logEvent(this, AnalyticsEvent.LYA_FOOD_LOG_CLICK)
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
@@ -338,37 +253,33 @@ class HomeNewActivity : BaseActivity() {
                 }
             }
 
-            TARGET_BREATHING -> {
+            DeepLinkTarget.BREATHING -> {
                 AnalyticsLogger.logEvent(this, AnalyticsEvent.EOS_BREATH_WORK_CLICK)
                 if (checkTrailEndedAndShowDialog()) {
                     ActivityUtils.startBreathWorkActivity(this)
                 }
             }
 
-            TARGET_PROFILE -> {
+            DeepLinkTarget.PROFILE -> {
                 startActivity(Intent(this, ProfileSettingsActivity::class.java))
             }
 
-            TARGET_CATEGORY_LIST -> {
-                val intent = Intent(this, NewCategoryListActivity::class.java)
-                intent.putExtra("moduleId", "ThinkRight")
-                startActivity(intent)
+            DeepLinkTarget.CATEGORY_LIST -> {
+                startActivity(Intent(this, NewCategoryListActivity::class.java).apply {
+                    putExtra("moduleId", "ThinkRight")
+                })
             }
 
-            TARGET_AI_REPORT -> {
+            DeepLinkTarget.AI_REPORT -> {
                 if (sharedPreferenceManager.userProfile.isReportGenerated)
                     callAIReportCardClick()
             }
 
-            TARGET_MIND_AUDIT -> {
-                callMindAuditClick()
-            }
+            DeepLinkTarget.MIND_AUDIT -> callMindAuditClick()
 
-            TARGET_FACE_SCAN -> {
-                callFaceScanClick()
-            }
+            DeepLinkTarget.FACE_SCAN -> callFaceScanClick()
 
-            TARGET_EATRIGHT_HOME -> {
+            DeepLinkTarget.EAT_HOME -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "EatRight")
@@ -377,7 +288,7 @@ class HomeNewActivity : BaseActivity() {
                 }
             }
 
-            TARGET_SLEEPRIGHT_HOME -> {
+            DeepLinkTarget.SLEEP_HOME -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "SleepRight")
@@ -386,7 +297,7 @@ class HomeNewActivity : BaseActivity() {
                 }
             }
 
-            TARGET_MOVERIGHT_HOME -> {
+            DeepLinkTarget.MOVE_HOME -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "MoveRight")
@@ -395,278 +306,185 @@ class HomeNewActivity : BaseActivity() {
                 }
             }
 
-            TARGET_WORKOUT_LOG_DEEP -> {
+            DeepLinkTarget.WORKOUT_LOG_DEEP -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "MoveRight")
-                        putExtra("BottomSeatName", "SearchActivityLogMove") // YourActivityFragment
+                        putExtra("BottomSeatName", "SearchActivityLogMove")
                     })
                 }
             }
 
-            TARGET_WEIGHT_LOG_DEEP -> {
+            DeepLinkTarget.WEIGHT_LOG_DEEP -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "EatRight")
-                        putExtra("BottomSeatName", "LogWeightEat")  // ← Ye hi Weight Log kholta hai
+                        putExtra("BottomSeatName", "LogWeightEat")
                     })
                 }
             }
 
-            TARGET_WATER_LOG_DEEP -> {
+            DeepLinkTarget.WATER_LOG_DEEP -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "EatRight")
-                        putExtra("BottomSeatName", "LogWaterIntakeEat")  // Water Log screen
+                        putExtra("BottomSeatName", "LogWaterIntakeEat")
                     })
                 }
             }
 
-            TARGET_SNAP_MEAL_DEEP -> {
-                if (checkTrailEndedAndShowDialog()) {
-                    startActivity(Intent(this, MainAIActivity::class.java).apply {
-                        putExtra("ModuleName", "EatRight")
-                        putExtra("BottomSeatName", "SnapMealTypeEat")  // Ye hi Snap Meal kholta hai
-                    })
-                }
-            }
-
-            TARGET_FOOD_LOG_DEEP -> {
-                if (checkTrailEndedAndShowDialog()) {
-                    startActivity(Intent(this, MainAIActivity::class.java).apply {
-                        putExtra("ModuleName", "EatRight")
-                        putExtra("BottomSeatName", "MealLogTypeEat")  // Ye hi Food Log kholta hai
-                    })
-                }
-            }
-
-            TARGET_SLEEP_LOG_DEEP -> {
+            DeepLinkTarget.SLEEP_LOG_DEEP -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "SleepRight")
-                        putExtra(
-                            "BottomSeatName",
-                            "LogLastNightSleep"
-                        )  // Ye hi Sleep Log kholta hai
+                        putExtra("BottomSeatName", "LogLastNightSleep")
                     })
                 }
             }
 
-            TARGET_THINKRIGHT_HOME -> {
+            DeepLinkTarget.THINK_HOME -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, MainAIActivity::class.java).apply {
                         putExtra("ModuleName", "ThinkRight")
-                        putExtra("BottomSeatName", "Not")  // ThinkRight ka default home tab
+                        putExtra("BottomSeatName", "Not")
                     })
                 }
             }
 
-            TARGET_SNAP_MEAL -> {
-                callSnapMealClick()
-            }
+            DeepLinkTarget.SNAP_MEAL -> callSnapMealClick()
 
-            TARGET_JOURNAL -> {
+            DeepLinkTarget.JOURNAL -> {
                 if (checkTrailEndedAndShowDialog()) {
                     ActivityUtils.startJournalListActivity(this)
                 }
             }
 
-            TARGET_SLEEP_SOUND -> {
+            DeepLinkTarget.SLEEP_SOUND -> {
                 if (checkTrailEndedAndShowDialog()) {
-                    ActivityUtils.startSleepSoundActivity(this@HomeNewActivity)
+                    ActivityUtils.startSleepSoundActivity(this)
                 }
             }
 
-            TARGET_SLEEP_SOUND_PLAYLIST -> {
+            DeepLinkTarget.SLEEP_SOUND_PLAYLIST -> {
                 if (checkTrailEndedAndShowDialog()) {
-                    startActivity(
-                        Intent(
-                            this@HomeNewActivity,
-                            NewSleepSoundActivity::class.java
-                        ).putExtra("PlayList", "ForPlayList")
-                    )
+                    startActivity(Intent(this, NewSleepSoundActivity::class.java).apply {
+                        putExtra("PlayList", "ForPlayList")
+                    })
                 }
             }
 
-            TARGET_AFFIRMATION -> {
+            DeepLinkTarget.AFFIRMATION -> {
                 if (checkTrailEndedAndShowDialog()) {
-                    ActivityUtils.startTodaysAffirmationActivity(this@HomeNewActivity)
+                    ActivityUtils.startTodaysAffirmationActivity(this)
                 }
             }
 
-            TARGET_AFFIRMATION_PLAYLIST -> {
+            DeepLinkTarget.AFFIRMATION_PLAYLIST -> {
                 if (checkTrailEndedAndShowDialog()) {
                     startActivity(Intent(this, PractiseAffirmationPlaylistActivity::class.java))
                 }
             }
 
+            // Quick link logs
+            DeepLinkTarget.ACTIVITY_LOG -> callLogActivitylick()
+            DeepLinkTarget.WEIGHT_LOG -> callLogWeightClick()
+            DeepLinkTarget.WATER_LOG -> callLogWaterClick()
+            DeepLinkTarget.SLEEP_LOG -> callLogSleepClick()
+            DeepLinkTarget.FOOD_LOG -> callLogFoodClick()
 
-            //quick link logs
-            TARGET_ACTIVITY_LOG -> {
-                callLogActivitylick()
-            }
+            DeepLinkTarget.JUMPBACK -> callJumpBackIn()
 
-            TARGET_WEIGHT_LOG -> {
-                callLogWeightClick()
-            }
-
-            TARGET_WATER_LOG -> {
-                callLogWaterClick()
-            }
-
-            TARGET_SLEEP_LOG -> {
-                callLogSleepClick()
-            }
-
-            TARGET_FOOD_LOG -> {
-                callLogFoodClick()
-            }
-
-            TARGET_JUMPBACK -> {
-                callJumpBackIn()
-            }
-
-            TARGET_SAVED_ITEMS -> {
+            DeepLinkTarget.SAVED_ITEMS -> {
                 startActivity(Intent(this, SavedItemListActivity::class.java))
             }
 
-            TARGET_THINK_EXPLORE -> {
-                val intent = Intent(this, NewCategoryListActivity::class.java)
-                intent.putExtra("moduleId", "THINK_RIGHT")
-                startActivity(intent)
+            DeepLinkTarget.THINK_EXPLORE -> {
+                startActivity(Intent(this, NewCategoryListActivity::class.java).apply {
+                    putExtra("moduleId", "THINK_RIGHT")
+                })
             }
 
-            TARGET_EAT_EXPLORE -> {
-                val intent = Intent(this, NewCategoryListActivity::class.java)
-                intent.putExtra("moduleId", "EAT_RIGHT")
-                startActivity(intent)
+            DeepLinkTarget.EAT_EXPLORE -> {
+                startActivity(Intent(this, NewCategoryListActivity::class.java).apply {
+                    putExtra("moduleId", "EAT_RIGHT")
+                })
             }
 
-            TARGET_SLEEP_EXPLORE -> {
-                val intent = Intent(this, NewCategoryListActivity::class.java)
-                intent.putExtra("moduleId", "SLEEP_RIGHT")
-                startActivity(intent)
+            DeepLinkTarget.SLEEP_EXPLORE -> {
+                startActivity(Intent(this, NewCategoryListActivity::class.java).apply {
+                    putExtra("moduleId", "SLEEP_RIGHT")
+                })
             }
 
-            TARGET_MOVE_EXPLORE -> {
-                val intent = Intent(this, NewCategoryListActivity::class.java)
-                intent.putExtra("moduleId", "MOVE_RIGHT")
-                startActivity(intent)
+            DeepLinkTarget.MOVE_EXPLORE -> {
+                startActivity(Intent(this, NewCategoryListActivity::class.java).apply {
+                    putExtra("moduleId", "MOVE_RIGHT")
+                })
             }
 
-            TARGET_CHALLENGE_HOME -> {
+            DeepLinkTarget.CHALLENGE_HOME -> {
                 val isValidState = sharedPreferenceManager.challengeState in listOf(3, 4)
-
-                if (
-                    isValidState &&
-                    sharedPreferenceManager.challengeParticipatedDate.isNotEmpty() &&
-                    DashboardChecklistManager.checklistStatus
-                ) {
+                if (isValidState && sharedPreferenceManager.challengeParticipatedDate.isNotEmpty() && DashboardChecklistManager.checklistStatus) {
                     startActivity(
-                        Intent(this, ChallengeActivity::class.java)
-                            .putExtra("SYNC_STATUS", syncStatus)
+                        Intent(
+                            this,
+                            ChallengeActivity::class.java
+                        ).putExtra("SYNC_STATUS", syncStatus)
                     )
                 }
-
             }
 
-            TARGET_CHALLENGE_LEADERBOARD -> {
+            DeepLinkTarget.CHALLENGE_LEADERBOARD -> {
                 val isValidState = sharedPreferenceManager.challengeState in listOf(3, 4)
-
-                if (
-                    isValidState &&
-                    sharedPreferenceManager.challengeParticipatedDate.isNotEmpty() &&
-                    DashboardChecklistManager.checklistStatus
-                ) {
+                if (isValidState && sharedPreferenceManager.challengeParticipatedDate.isNotEmpty() && DashboardChecklistManager.checklistStatus) {
                     startActivity(Intent(this, LeaderboardActivity::class.java))
                 }
-
             }
 
-            TARGET_SUBSCRIPTION_PLAN -> {
+            DeepLinkTarget.SUBSCRIPTION_PLAN -> {
                 startActivity(Intent(this, SubscriptionPlanListActivity::class.java).apply {
                     putExtra("SUBSCRIPTION_TYPE", "SUBSCRIPTION_PLAN")
                 })
             }
 
-            TARGET_BOOSTER_PLAN -> {
+            DeepLinkTarget.BOOSTER_PLAN -> {
                 startActivity(Intent(this, SubscriptionPlanListActivity::class.java).apply {
                     putExtra("SUBSCRIPTION_TYPE", "FACIAL_SCAN")
                 })
             }
 
-            TARGET_MIND_AUDIT_PHQ9 -> {
-                callMindAuditDeepLinkClick("PHQ-9")
-            }
+            DeepLinkTarget.MIND_AUDIT_PHQ9 -> callMindAuditDeepLinkClick("PHQ-9")
+            DeepLinkTarget.MIND_AUDIT_OHQ -> callMindAuditDeepLinkClick("OHQ")
+            DeepLinkTarget.MIND_AUDIT_CAS -> callMindAuditDeepLinkClick("CAS")
+            DeepLinkTarget.MIND_AUDIT_DASS21 -> callMindAuditDeepLinkClick("DASS-21")
+            DeepLinkTarget.MIND_AUDIT_GAD7 -> callMindAuditDeepLinkClick("GAD-7")
 
-            TARGET_MIND_AUDIT_OHQ -> {
-                callMindAuditDeepLinkClick("OHQ")
-            }
-
-            TARGET_MIND_AUDIT_CAS -> {
-                callMindAuditDeepLinkClick("CAS")
-            }
-
-            TARGET_MIND_AUDIT_DASS21 -> {
-                callMindAuditDeepLinkClick("DASS-21")
-            }
-
-            TARGET_MIND_AUDIT_GAD7 -> {
-                callMindAuditDeepLinkClick("GAD-7")
-            }
-
-            TARGET_BREATHING_ALTERNATE -> {
+            // Breathing variations - all call the same utility
+            DeepLinkTarget.BREATHING_ALTERNATE,
+            DeepLinkTarget.BREATHING_BOX,
+            DeepLinkTarget.BREATHING_CUSTOM,
+            DeepLinkTarget.BREATHING_4_7_8 -> {
                 AnalyticsLogger.logEvent(this, AnalyticsEvent.EOS_BREATH_WORK_CLICK)
                 if (checkTrailEndedAndShowDialog()) {
                     ActivityUtils.startBreathWorkActivity(this)
                 }
             }
 
-            TARGET_BREATHING_BOX -> {
-                AnalyticsLogger.logEvent(this, AnalyticsEvent.EOS_BREATH_WORK_CLICK)
-                if (checkTrailEndedAndShowDialog()) {
-                    ActivityUtils.startBreathWorkActivity(this)
-                }
-            }
-
-            TARGET_BREATHING_CUSTOM -> {
-                AnalyticsLogger.logEvent(this, AnalyticsEvent.EOS_BREATH_WORK_CLICK)
-                if (checkTrailEndedAndShowDialog()) {
-                    ActivityUtils.startBreathWorkActivity(this)
-                }
-            }
-
-            TARGET_BREATHING_4_7_8 -> {
-                AnalyticsLogger.logEvent(this, AnalyticsEvent.EOS_BREATH_WORK_CLICK)
-                if (checkTrailEndedAndShowDialog()) {
-                    ActivityUtils.startBreathWorkActivity(this)
-                }
-            }
-
-            else -> {
-                target?.let { safeTarget ->
-
-                    val activityClass = when {
-                        safeTarget.contains(TARGET_ARTICLE) -> ArticlesDetailActivity::class.java
-                        safeTarget.contains(TARGET_AUDIO) ||
-                                safeTarget.contains(TARGET_VIDEO) -> ContentDetailsActivity::class.java
-                        /* safeTarget.contains(TARGET_SERIES) -> SeriesListActivity::class.java
-                         safeTarget.contains(TARGET_SERIES_DETAILS) -> NewSeriesDetailsActivity::class.java*/
-                        else -> null
-                    }
-
-                    val contentId = safeTarget
-                        .split("/")
-                        .getOrNull(2)
-
-                    if (activityClass != null && contentId != null) {
-                        startActivity(
-                            Intent(this, activityClass)
-                                .putExtra("contentId", contentId)
-                        )
-                    }
+            // Dynamic content types
+            DeepLinkTarget.ARTICLE, DeepLinkTarget.AUDIO, DeepLinkTarget.VIDEO -> {
+                val activityClass = if (target == DeepLinkTarget.ARTICLE) {
+                    ArticlesDetailActivity::class.java
+                } else {
+                    ContentDetailsActivity::class.java
                 }
 
+                // You should pass the detail ID via EXTRA_DEEP_LINK_DETAIL_ID from the RouterActivity
+                val contentId = intent.getStringExtra(DeepLinkTarget.EXTRA_DEEP_LINK_DETAIL_ID)
+                    ?.split("/")?.getOrNull(2)
+
+                if (contentId != null) {
+                    startActivity(Intent(this, activityClass).putExtra("contentId", contentId))
+                }
             }
         }
     }
@@ -678,7 +496,6 @@ class HomeNewActivity : BaseActivity() {
     private var showheaderFlag = false
     var isTrialExpired = false
     private var isCountDownVisible = false
-    var isHealthCamFree = true
     private var totalCaloriesBurnedRecord: List<TotalCaloriesBurnedRecord>? = null
     private var activeCalorieBurnedRecord: List<ActiveCaloriesBurnedRecord>? = null
     private var stepsRecord: List<StepsRecord>? = null
@@ -696,30 +513,6 @@ class HomeNewActivity : BaseActivity() {
     private var respiratoryRateRecord: List<RespiratoryRateRecord>? = null
     private lateinit var healthConnectClient: HealthConnectClient
 
-    private lateinit var permissionManager: PermissionManager
-    private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            permissionManager.handlePermissionResult(result)
-        }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private val allReadPermissions = setOf(
-        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
-        HealthPermission.getReadPermission(DistanceRecord::class),
-        HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getReadPermission(HeartRateRecord::class),
-        HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
-        HealthPermission.getReadPermission(RestingHeartRateRecord::class),
-        HealthPermission.getReadPermission(RespiratoryRateRecord::class),
-        HealthPermission.getReadPermission(OxygenSaturationRecord::class),
-        HealthPermission.getReadPermission(BloodPressureRecord::class),
-        HealthPermission.getReadPermission(WeightRecord::class),
-        HealthPermission.getReadPermission(BodyFatRecord::class),
-        HealthPermission.getReadPermission(SleepSessionRecord::class),
-        HealthPermission.getReadPermission(ExerciseSessionRecord::class),
-    )
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1214,7 +1007,7 @@ class HomeNewActivity : BaseActivity() {
         )
 
         // deeplinks
-        val deepLinkTarget = intent.getStringExtra(EXTRA_DEEP_LINK_TARGET)
+        val deepLinkTarget = intent.getSerializableExtra(EXTRA_DEEP_LINK_TARGET) as? DeepLinkTarget
         handleDeepLinkTarget(deepLinkTarget)
 
         sendTokenToServer("")
@@ -1305,7 +1098,7 @@ class HomeNewActivity : BaseActivity() {
                     lifecycleScope.launch {
                         val granted =
                             healthConnectClient.permissionController.getGrantedPermissions()
-                        if (allReadPermissions.all { it in granted }) {
+                        if (HealthConnectConstants.allReadPermissions.all { it in granted }) {
                             fetchAllHealthData()
                         }
                     }
@@ -1368,8 +1161,7 @@ class HomeNewActivity : BaseActivity() {
                 })
             }
         }
-        val target = intent.getStringExtra(EXTRA_DEEP_LINK_TARGET)
-        Log.e("Target", "target Home = " + target)
+        val target = intent.getSerializableExtra(EXTRA_DEEP_LINK_TARGET) as? DeepLinkTarget
         handleDeepLinkTarget(target)
     }
 
@@ -2101,10 +1893,10 @@ class HomeNewActivity : BaseActivity() {
     private suspend fun requestPermissionsAndReadAllData() {
         try {
             val granted = healthConnectClient.permissionController.getGrantedPermissions()
-            if (allReadPermissions.all { it in granted }) {
+            if (HealthConnectConstants.allReadPermissions.all { it in granted }) {
                 fetchAllHealthData()
             } else {
-                requestPermissionsLauncher.launch(allReadPermissions)
+                requestPermissionsLauncher.launch(HealthConnectConstants.allReadPermissions)
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
@@ -2120,7 +1912,7 @@ class HomeNewActivity : BaseActivity() {
     private val requestPermissionsLauncher =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
             lifecycleScope.launch {
-                if (granted.containsAll(allReadPermissions)) {
+                if (granted.containsAll(HealthConnectConstants.allReadPermissions)) {
                     fetchAllHealthData()
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
@@ -2137,12 +1929,14 @@ class HomeNewActivity : BaseActivity() {
         }
 
     private suspend fun fetchAllHealthData() {
-        updateResyncTextView(true)
-        if (sharedPreferenceManager.isNewUser) {
-            updateSync(isLoading = true)
-            syncStatus = true
-        } else {
-            showCompactSyncView()
+        runOnUiThread {
+            updateResyncTextView(true)
+            if (sharedPreferenceManager.isNewUser) {
+                updateSync(isLoading = true)
+                syncStatus = true
+            } else {
+                showCompactSyncView()
+            }
         }
         try {
             val ctx = this@HomeNewActivity ?: return
@@ -3740,11 +3534,6 @@ class HomeNewActivity : BaseActivity() {
     fun callJumpBackIn() {
         startActivity(Intent(this, JumpInBackActivity::class.java))
     }
-    /* fun callExploreModuleClick(){
-         val intent = Intent(this, NewCategoryListActivity::class.java)
-             intent.putExtra("moduleId",)
-             startActivity(intent)
-     }*/
 
     private fun logAndOpenMeal(snapId: String) {
         AnalyticsLogger.logEvent(
@@ -3919,80 +3708,6 @@ class HomeNewActivity : BaseActivity() {
         })
     }
 
-// Query subscription products
-    /*private fun getSubscriptionProducts(priceTextView: TextView) {
-        // 1. Safety check for BillingClient readiness
-        if (!billingClient.isReady) {
-            Log.e("Billing", "BillingClient is not ready yet.")
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val productList = listOf(
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId("test_sub_yearly")
-                        .setProductType(BillingClient.ProductType.SUBS)
-                        .build()
-                )
-
-                val params = QueryProductDetailsParams.newBuilder()
-                    .setProductList(productList)
-                    .build()
-
-                // 2. Query the products
-                val subsResult = billingClient.queryProductDetails(params)
-                val billingResult = subsResult.billingResult
-                val productDetailsList = subsResult.productDetailsList
-
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList != null) {
-
-                    if (productDetailsList.isEmpty()) {
-                        Log.w("Billing", "No products found. Check Console ID.")
-                        return@launch
-                    }
-
-                    for (productDetails in productDetailsList) {
-                        // 3. Extract the Offer Details (Base plans and offers)
-                        val offerDetails = productDetails.subscriptionOfferDetails
-
-                        if (!offerDetails.isNullOrEmpty()) {
-                            // For a simple setup, we take the first available offer/base plan
-                            val subOffer = offerDetails[0]
-
-                            // 4. Extract Pricing Phases (where the formatted price lives)
-                            val pricingPhases = subOffer.pricingPhases.pricingPhaseList
-
-                            if (pricingPhases.isNotEmpty()) {
-                                // formattedPrice will be "₹7.00" based on your JSON
-                                val price = pricingPhases[0].formattedPrice
-
-                                Log.d("Billing", "Success! Found price: $price")
-
-                                // 5. Update UI on the Main Thread
-                                withContext(Dispatchers.Main) {
-                                    priceTextView.text = price
-                                }
-                            }
-                        } else {
-                            Log.e(
-                                "Billing",
-                                "No subscription offer details found for this product."
-                            )
-                        }
-                    }
-                } else {
-                    Log.e(
-                        "Billing",
-                        "Error: ${billingResult.debugMessage} Code: ${billingResult.responseCode}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("Billing", "Exception during query: ${e.message}")
-            }
-        }
-    }*/
-
     private fun joinChallenge() {
         AppLoader.show(this)
         apiService.postChallengeStart(sharedPreferenceManager.accessToken)
@@ -4063,7 +3778,6 @@ class HomeNewActivity : BaseActivity() {
 
         // Hide all layouts first to avoid overlapping UI
         hideChallengeLayout()
-
 
         val dateRange = getChallengeDateRange(
             dates.challengeStartDate,

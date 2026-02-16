@@ -783,5 +783,15 @@ public class SharedPreferenceManager {
         editor.putBoolean(SharedPreferenceConstants.NEW_USER, isNewUser);
         editor.apply();
     }
+
+    public int getHealthPermissionDenialCount() {
+        return sharedPreferences.getInt(SharedPreferenceConstants.SYNC_PERMISSION_COUNT, 0);
+    }
+
+    public void setHealthPermissionDenialCount(int count) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(SharedPreferenceConstants.SYNC_PERMISSION_COUNT, count);
+        editor.apply();
+    }
 }
 

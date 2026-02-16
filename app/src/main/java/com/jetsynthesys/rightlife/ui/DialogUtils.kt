@@ -17,6 +17,7 @@ import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.databinding.DialogChecklistQuestionsBinding
 import com.jetsynthesys.rightlife.databinding.DialogChecklistWhyMattersBinding
@@ -344,6 +345,29 @@ object DialogUtils {
 
         // Show dialog
         bottomSheetDialog.show()
+    }
+
+    fun showConfirmationDialog(
+        context: Context,
+        title: String,
+        message: String,
+        positiveButtonText: String = "OK",
+        negativeButtonText: String = "Cancel",
+        onPositiveClick: () -> Unit
+    ) {
+        // Using MaterialAlertDialogBuilder for a modern, rounded look
+        MaterialAlertDialogBuilder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false) // Ensures the user makes a choice
+            .setPositiveButton(positiveButtonText) { dialog, _ ->
+                onPositiveClick()
+                dialog.dismiss()
+            }
+            .setNegativeButton(negativeButtonText) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
 

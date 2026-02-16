@@ -81,6 +81,7 @@ class ContentDetailsAdapter(
                             ContentDetailsActivity::class.java
                         ).apply {
                             putExtra("contentId", item.id)
+                            putExtra("PROGRESS", item.leftDurationINT)
                         })
                 } else if (item.contentType.equals("SERIES", ignoreCase = true)) {
                     context.startActivity(

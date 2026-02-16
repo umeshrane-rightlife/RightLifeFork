@@ -25,10 +25,10 @@ import com.google.gson.JsonElement
 import com.jetsynthesys.rightlife.BaseFragment
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.RetrofitData.ApiClient
-import com.jetsynthesys.rightlife.apimodel.affirmations.AffirmationResponse
 import com.jetsynthesys.rightlife.apimodel.rledit.RightLifeEditResponse
 import com.jetsynthesys.rightlife.apimodel.servicepane.HomeService
 import com.jetsynthesys.rightlife.apimodel.servicepane.ServicePaneResponse
+import com.jetsynthesys.rightlife.apimodel.submodule.SubModuleData
 import com.jetsynthesys.rightlife.apimodel.submodule.SubModuleResponse
 import com.jetsynthesys.rightlife.apimodel.welnessresponse.ContentWellness
 import com.jetsynthesys.rightlife.apimodel.welnessresponse.WellnessApiResponse
@@ -43,7 +43,6 @@ import com.jetsynthesys.rightlife.ui.CardItem
 import com.jetsynthesys.rightlife.ui.CircularCardAdapter
 import com.jetsynthesys.rightlife.ui.NewCategoryListActivity
 import com.jetsynthesys.rightlife.ui.ServicePaneAdapter
-import com.jetsynthesys.rightlife.ui.TestAdapter
 import com.jetsynthesys.rightlife.ui.contentdetailvideo.ContentDetailsActivity
 import com.jetsynthesys.rightlife.ui.contentdetailvideo.SeriesListActivity
 import com.jetsynthesys.rightlife.ui.mindaudit.MindAuditFromActivity
@@ -52,8 +51,6 @@ import com.jetsynthesys.rightlife.ui.utility.AnalyticsLogger
 import com.jetsynthesys.rightlife.ui.utility.FeatureFlags
 import com.jetsynthesys.rightlife.ui.utility.NetworkUtils
 import com.jetsynthesys.rightlife.ui.voicescan.VoiceScanActivity
-import com.zhpan.bannerview.constants.PageStyle
-import com.zhpan.indicator.enums.IndicatorStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
@@ -139,261 +136,84 @@ class HomeExploreFragment : BaseFragment() {
     }
 
     private fun setClickListeners() {
+        // 1. Simple Navigation
         binding.imgJumpBackInNext.setOnClickListener {
             startActivity(Intent(requireContext(), JumpInBackActivity::class.java))
         }
-        binding.relativeRledit3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callRlEditDetailActivity(2)
-            } else showInternetError()
-        }
-        binding.relativeRledit2.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callRlEditDetailActivity(1)
-            } else showInternetError()
-        }
-        binding.relativeRledit1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callRlEditDetailActivity(0)
-            } else showInternetError()
-        }
 
-        binding.relativeWellness1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callWellnessDetailActivity(0)
-            } else showInternetError()
-        }
-        binding.relativeWellness2.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callWellnessDetailActivity(1)
-            } else showInternetError()
-        }
-        binding.relativeWellness3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callWellnessDetailActivity(2)
-            } else showInternetError()
-        }
-        binding.relativeWellness4.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                callWellnessDetailActivity(3)
-            } else showInternetError()
-        }
+        // 2. Edit Details (Mapped)
+        listOf(binding.relativeRledit1, binding.relativeRledit2, binding.relativeRledit3)
+            .forEachIndexed { index, view ->
+                view.setSafeClickListener { callRlEditDetailActivity(index) }
+            }
 
-        // set click listener
-        binding.llThinkrightCategory1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                if (ThinkRSubModuleResponse?.data?.isNotEmpty() == true) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        ThinkRSubModuleResponse?.data?.get(0)?.categoryId
-                    )
-                    intent.putExtra("moduleId", ThinkRSubModuleResponse?.data?.get(0)?.moduleId)
+        // 3. Wellness Details (Mapped)
+        listOf(
+            binding.relativeWellness1,
+            binding.relativeWellness2,
+            binding.relativeWellness3,
+            binding.relativeWellness4
+        )
+            .forEachIndexed { index, view ->
+                view.setSafeClickListener { callWellnessDetailActivity(index) }
+            }
+
+        // 5. Explore Buttons
+        binding.btnSrExplore.setSafeClickListener {
+            SleepRSubModuleResponse?.let {
+                callExploreModuleActivity(
+                    it
+                )
+            }
+        }
+        binding.btnTrExplore.setSafeClickListener {
+            ThinkRSubModuleResponse?.let {
+                callExploreModuleActivity(
+                    it
+                )
+            }
+        }
+        binding.btnErExplore.setSafeClickListener {
+            EatRSubModuleResponse?.let {
+                callExploreModuleActivity(
+                    it
+                )
+            }
+        }
+        binding.btnMrExplore.setSafeClickListener {
+            MoveRSubModuleResponse?.let {
+                callExploreModuleActivity(
+                    it
+                )
+            }
+        }
+    }
+
+    private fun setupCategoryClicks(views: List<View>, responseData: List<SubModuleData>?) {
+        views.forEachIndexed { index, view ->
+            view.setSafeClickListener {
+                responseData?.getOrNull(index)?.let { item ->
+                    val intent =
+                        Intent(requireContext(), NewCategoryListActivity::class.java).apply {
+                            putExtra("Categorytype", item.categoryId)
+                            putExtra("moduleId", item.moduleId)
+                        }
                     startActivity(intent)
                 }
-            } else showInternetError()
-
+            }
         }
-        binding.llThinkrightCategory2.setOnClickListener {
+    }
+
+    // Inside your Fragment class
+    private fun View.setSafeClickListener(action: () -> Unit) {
+        this.setOnClickListener {
+            // 'context' is available directly inside a Fragment
             if (NetworkUtils.isInternetAvailable(requireContext())) {
-                if (ThinkRSubModuleResponse?.data?.size!! > 1) {
-                    ThinkRSubModuleResponse?.data?.get(1)?.name
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        ThinkRSubModuleResponse?.data?.get(1)?.categoryId
-                    )
-                    intent.putExtra("moduleId", ThinkRSubModuleResponse?.data?.get(1)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llThinkrightCategory3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                if (ThinkRSubModuleResponse?.data?.size!! > 2) {
-                    ThinkRSubModuleResponse?.data?.get(2)?.name
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        ThinkRSubModuleResponse?.data?.get(2)?.categoryId
-                    )
-                    intent.putExtra("moduleId", ThinkRSubModuleResponse?.data?.get(2)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llThinkrightCategory4.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                if (ThinkRSubModuleResponse?.data?.size!! > 3) {
-                    ThinkRSubModuleResponse?.data?.get(3)?.name
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        ThinkRSubModuleResponse?.data?.get(3)?.categoryId
-                    )
-                    intent.putExtra("moduleId", ThinkRSubModuleResponse?.data?.get(3)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-
-        binding.llMoverightCategory1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-                if (MoveRSubModuleResponse?.data?.isNotEmpty() == true) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        MoveRSubModuleResponse?.data?.get(0)?.categoryId
-                    )
-                    intent.putExtra("moduleId", MoveRSubModuleResponse?.data?.get(0)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llMoverightCategor2.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (MoveRSubModuleResponse?.data?.size!! > 2) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        MoveRSubModuleResponse?.data?.get(2)?.categoryId
-                    )
-                    intent.putExtra("moduleId", MoveRSubModuleResponse?.data?.get(2)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llMoverightCategory3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (MoveRSubModuleResponse?.data?.size!! > 1) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        MoveRSubModuleResponse?.data?.get(1)?.categoryId
-                    )
-                    intent.putExtra("moduleId", MoveRSubModuleResponse?.data?.get(1)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-
-        binding.llEatrightCategory1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (EatRSubModuleResponse?.data?.isNotEmpty() == true) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra("Categorytype", EatRSubModuleResponse?.data?.get(0)?.categoryId)
-                    intent.putExtra("moduleId", EatRSubModuleResponse?.data?.get(0)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llEatrightCategory2.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (EatRSubModuleResponse?.data?.size!! > 1) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra("Categorytype", EatRSubModuleResponse?.data?.get(1)?.categoryId)
-                    intent.putExtra("moduleId", EatRSubModuleResponse?.data?.get(1)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llEatrightCategory3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (EatRSubModuleResponse?.data?.size!! > 2) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra("Categorytype", EatRSubModuleResponse?.data?.get(2)?.categoryId)
-                    intent.putExtra("moduleId", EatRSubModuleResponse?.data?.get(2)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llEatrightCategory4.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (EatRSubModuleResponse?.data?.size!! > 3) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra("Categorytype", EatRSubModuleResponse?.data?.get(3)?.categoryId)
-                    intent.putExtra("moduleId", EatRSubModuleResponse?.data?.get(3)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-
-        binding.llSleeprightCategory1.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (SleepRSubModuleResponse?.data?.isNotEmpty() == true) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        SleepRSubModuleResponse?.data?.get(0)?.categoryId
-                    )
-                    intent.putExtra("moduleId", SleepRSubModuleResponse?.data?.get(0)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llSleeprightCategory2.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (SleepRSubModuleResponse?.data?.size!! > 1) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        SleepRSubModuleResponse?.data?.get(1)?.categoryId
-                    )
-                    intent.putExtra("moduleId", SleepRSubModuleResponse?.data?.get(1)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-        binding.llSleeprightCategory3.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                if (SleepRSubModuleResponse?.data?.size!! > 2) {
-                    val intent = Intent(requireContext(), NewCategoryListActivity::class.java)
-                    intent.putExtra(
-                        "Categorytype",
-                        SleepRSubModuleResponse?.data?.get(2)?.categoryId
-                    )
-                    intent.putExtra("moduleId", SleepRSubModuleResponse?.data?.get(2)?.moduleId)
-                    startActivity(intent)
-                }
-            } else showInternetError()
-        }
-
-        binding.btnSrExplore.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                callExploreModuleActivity(SleepRSubModuleResponse!!)
-            } else showInternetError()
-        }
-        binding.btnTrExplore.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                callExploreModuleActivity(ThinkRSubModuleResponse!!)
-            } else showInternetError()
-        }
-        binding.btnErExplore.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                callExploreModuleActivity(EatRSubModuleResponse!!)
-            } else showInternetError()
-        }
-        binding.btnMrExplore.setOnClickListener {
-            if (NetworkUtils.isInternetAvailable(requireContext())) {
-
-                callExploreModuleActivity(MoveRSubModuleResponse!!)
-            } else showInternetError()
-        }
-
-        binding.btnWellnessPreference.setOnClickListener {
-
+                action()
+            } else {
+                // Ensure this method exists in your Fragment or BaseFragment
+                showInternetError()
+            }
         }
     }
 
@@ -429,77 +249,6 @@ class HomeExploreFragment : BaseFragment() {
 
         getJumpBackInData()
     }
-
-    // get Affirmation list
-    private fun getAffirmations() {
-        val call = apiService.getAffirmationList(
-            sharedPreferenceManager.accessToken,
-            sharedPreferenceManager.userId,
-            true
-        )
-        call.enqueue(object : Callback<JsonElement?> {
-            override fun onResponse(call: Call<JsonElement?>, response: Response<JsonElement?>) {
-                if (!isFragmentSafe()) return
-                if (response.isSuccessful && response.body() != null) {
-                    response.body()
-                    val gson = Gson()
-                    val jsonResponse = gson.toJson(response.body())
-
-                    val responseObj = gson.fromJson(
-                        jsonResponse,
-                        AffirmationResponse::class.java
-                    )
-                    runWhenAttached { setupAffirmationContent(responseObj) }
-                } else {
-                    //Toast.makeText(HomeActivity.this, "Server Error: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            override fun onFailure(call: Call<JsonElement?>, t: Throwable) {
-                if (!isFragmentSafe()) return
-                handleNoInternetView(t)
-            }
-        })
-    }
-
-    /*private fun getPromotionList() {
-        val call = apiService.getPromotionList(
-            sharedPreferenceManager.accessToken,
-            "HOME_PAGE",
-            sharedPreferenceManager.userId,
-            "TOP"
-        )
-        call.enqueue(object : Callback<JsonElement?> {
-            override fun onResponse(call: Call<JsonElement?>, response: Response<JsonElement?>) {
-                if (!isFragmentSafe()) return
-                if (response.isSuccessful && response.body() != null) {
-                    val gson = Gson()
-                    val jsonResponse = gson.toJson(response.body())
-                    val promotionResponse = gson.fromJson(
-                        jsonResponse,
-                        PromotionResponse::class.java
-                    )
-                    if (promotionResponse.success) {
-                        runWhenAttached { handlePromotionResponse(promotionResponse) }
-                    } else {
-                        Toast.makeText(
-                            requireActivity(),
-                            "Failed: " + promotionResponse.statusCode,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    //  Toast.makeText(HomeActivity.this, "Server Error: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            override fun onFailure(call: Call<JsonElement?>, t: Throwable) {
-                if (!isFragmentSafe()) return
-                handleNoInternetView(t)
-            }
-        })
-    }*/
-
 
     private fun getPromotionListWeekly() {
         val call = apiService.getPromotionListWeekly(
@@ -664,7 +413,6 @@ class HomeExploreFragment : BaseFragment() {
         })
     }
 
-    // ----- Test API
     private fun getSubModuleContent(moduleid: String) {
         val call =
             apiService.getsubmodule(sharedPreferenceManager.accessToken, moduleid, "CATEGORY")
@@ -715,345 +463,145 @@ class HomeExploreFragment : BaseFragment() {
         })
     }
 
+    private fun bindCategoryData(textView: TextView, imageView: ImageView, item: SubModuleData?) {
+        if (item == null) return
+
+        textView.text = item.name
+
+        Glide.with(requireActivity())
+            .load(ApiClient.CDN_URL_QA + item.imageUrl)
+            .placeholder(R.drawable.rl_placeholder)
+            .error(R.drawable.rl_placeholder)
+            .into(imageView)
+    }
+
+    private fun setupSubModuleUI(
+        textViews: List<TextView>,
+        imageViews: List<ImageView>,
+        data: List<SubModuleData>?
+    ) {
+        if (data.isNullOrEmpty()) return
+
+        // Iterate through the available views and bind data if it exists at that index
+        textViews.forEachIndexed { index, textView ->
+            val imageView = imageViews.getOrNull(index)
+            val item = data.getOrNull(index)
+
+            if (imageView != null && item != null) {
+                bindCategoryData(textView, imageView, item)
+            }
+        }
+    }
+
     private fun handleThinkRightResponse() {
-        if (ThinkRSubModuleResponse?.data?.isNotEmpty() == true) {
-            with(binding) {
-                tvThinkRightCategory1.text = ThinkRSubModuleResponse?.data?.get(0)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + ThinkRSubModuleResponse?.data?.get(0)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageThinkRightCategory1)
-            }
-        }
-        if (ThinkRSubModuleResponse?.data?.size!! > 1) {
-            with(binding) {
-                tvThinkRightCategory2.text = ThinkRSubModuleResponse?.data?.get(1)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + ThinkRSubModuleResponse?.data?.get(1)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageThinkRightCategory2)
-            }
-        }
-        if (ThinkRSubModuleResponse?.data?.size!! > 2) {
-            with(binding) {
-                tvThinkRightCategory3.text = ThinkRSubModuleResponse?.data?.get(2)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + ThinkRSubModuleResponse?.data?.get(2)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageThinkRightCategory3)
-            }
-        }
-        if (ThinkRSubModuleResponse?.data?.size!! > 3) {
-            with(binding) {
-                tvThinkRightCategory4.text = ThinkRSubModuleResponse?.data?.get(3)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + ThinkRSubModuleResponse?.data?.get(3)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageThinkRightCategory4)
-            }
-        }
+        setupSubModuleUI(
+            textViews = listOf(
+                binding.tvThinkRightCategory1,
+                binding.tvThinkRightCategory2,
+                binding.tvThinkRightCategory3,
+                binding.tvThinkRightCategory4
+            ),
+            imageViews = listOf(
+                binding.imageThinkRightCategory1,
+                binding.imageThinkRightCategory2,
+                binding.imageThinkRightCategory3,
+                binding.imageThinkRightCategory4
+            ),
+            data = ThinkRSubModuleResponse?.data
+        )
+        setupCategoryClicks(
+            views = listOf(
+                binding.llThinkrightCategory1,
+                binding.llThinkrightCategory2,
+                binding.llThinkrightCategory3,
+                binding.llThinkrightCategory4
+            ),
+            responseData = ThinkRSubModuleResponse?.data
+        )
     }
 
     private fun handleMoveRightResponse() {
-        if (MoveRSubModuleResponse?.data?.isNotEmpty() == true) {
-            with(binding) {
-                tvMoveRightCategory1.text = MoveRSubModuleResponse?.data?.get(0)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + MoveRSubModuleResponse?.data?.get(0)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageMoveRightCategory1)
-            }
-        }
-        if (MoveRSubModuleResponse?.data?.size!! > 1) {
-            with(binding) {
-                tvMoveRightCategory3.text = MoveRSubModuleResponse?.data?.get(1)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + MoveRSubModuleResponse?.data?.get(1)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageMoveRightCategory3)
-            }
-        }
-        if (MoveRSubModuleResponse?.data?.size!! > 2) {
-            with(binding) {
-                tvMoveRightCategory2.text = MoveRSubModuleResponse?.data?.get(2)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + MoveRSubModuleResponse?.data?.get(2)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageMoveRightCategory2)
-            }
-        }
+        // Note: I preserved your specific index mapping (1 -> 3, 2 -> 2) by ordering the list
+        setupSubModuleUI(
+            textViews = listOf(
+                binding.tvMoveRightCategory1,
+                binding.tvMoveRightCategory3,
+                binding.tvMoveRightCategory2
+            ),
+            imageViews = listOf(
+                binding.imageMoveRightCategory1,
+                binding.imageMoveRightCategory3,
+                binding.imageMoveRightCategory2
+            ),
+            data = MoveRSubModuleResponse?.data
+        )
+
+        setupCategoryClicks(
+            views = listOf(
+                binding.llMoverightCategory1,
+                binding.llMoverightCategory3,
+                binding.llMoverightCategor2
+            ), // Note: kept your specific order 0, 1, 2
+            responseData = MoveRSubModuleResponse?.data
+        )
     }
 
     private fun handleEatRightResponse() {
-        if (EatRSubModuleResponse?.data?.isNotEmpty() == true) {
-            with(binding) {
-                tvEatRightCategory1.text = EatRSubModuleResponse?.data?.get(0)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + EatRSubModuleResponse?.data?.get(0)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageEatRightCategory1)
-            }
-        }
-        if (EatRSubModuleResponse?.data?.size!! > 1) {
-            with(binding) {
-                tvEatRightCategory2.text = EatRSubModuleResponse?.data?.get(1)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + EatRSubModuleResponse?.data?.get(1)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageEatRightCategory2)
-            }
-        }
-        if (EatRSubModuleResponse?.data?.size!! > 2) {
-            with(binding) {
-                tvEatRightCategory3.text = EatRSubModuleResponse?.data?.get(2)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + EatRSubModuleResponse?.data?.get(2)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageEatRightCategory3)
-            }
-        }
-        if (EatRSubModuleResponse?.data?.size!! > 3) {
-            with(binding) {
-                tvEatRightCategory4.text = EatRSubModuleResponse?.data?.get(3)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + EatRSubModuleResponse?.data?.get(3)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageEatRightCategory4)
-            }
-        }
+        setupSubModuleUI(
+            textViews = listOf(
+                binding.tvEatRightCategory1,
+                binding.tvEatRightCategory2,
+                binding.tvEatRightCategory3,
+                binding.tvEatRightCategory4
+            ),
+            imageViews = listOf(
+                binding.imageEatRightCategory1,
+                binding.imageEatRightCategory2,
+                binding.imageEatRightCategory3,
+                binding.imageEatRightCategory4
+            ),
+            data = EatRSubModuleResponse?.data
+        )
+
+        setupCategoryClicks(
+            views = listOf(
+                binding.llEatrightCategory1,
+                binding.llEatrightCategory2,
+                binding.llEatrightCategory3,
+                binding.llEatrightCategory4
+            ),
+            responseData = EatRSubModuleResponse?.data
+        )
     }
 
     private fun handleSleepRightResponse() {
-        if (SleepRSubModuleResponse?.data?.isNotEmpty() == true) {
-            with(binding) {
-                tvSleepRightCategory1.text = SleepRSubModuleResponse?.data?.get(0)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + SleepRSubModuleResponse?.data?.get(0)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageSleepRightCategory1)
-            }
-        }
-        if (SleepRSubModuleResponse?.data?.size!! > 1) {
-            with(binding) {
-                tvSleepRightCategory2.text = SleepRSubModuleResponse?.data?.get(1)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + SleepRSubModuleResponse?.data?.get(1)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageSleepRightCategory2)
-            }
-        }
-        if (SleepRSubModuleResponse?.data?.size!! > 2) {
-            with(binding) {
-                tvSleepRightCategory3.text = SleepRSubModuleResponse?.data?.get(2)?.name
-                Glide.with(requireActivity())
-                    .load(ApiClient.CDN_URL_QA + SleepRSubModuleResponse?.data?.get(2)?.imageUrl)
-                    .placeholder(R.drawable.rl_placeholder)
-                    .error(R.drawable.rl_placeholder)
-                    .into(imageSleepRightCategory3)
-            }
-        }
+        setupSubModuleUI(
+            textViews = listOf(
+                binding.tvSleepRightCategory1,
+                binding.tvSleepRightCategory2,
+                binding.tvSleepRightCategory3
+            ),
+            imageViews = listOf(
+                binding.imageSleepRightCategory1,
+                binding.imageSleepRightCategory2,
+                binding.imageSleepRightCategory3
+            ),
+            data = SleepRSubModuleResponse?.data
+        )
+
+        setupCategoryClicks(
+            views = listOf(
+                binding.llSleeprightCategory1,
+                binding.llSleeprightCategory2,
+                binding.llSleeprightCategory3
+            ),
+            responseData = SleepRSubModuleResponse?.data
+        )
     }
-
-    private fun setupAffirmationContent(responseObj: AffirmationResponse) {
-        val selectedColor = ContextCompat.getColor(requireContext(), R.color.menuselected)
-        val unselectedColor = ContextCompat.getColor(requireContext(), R.color.gray)
-        // Set up the ViewPager
-        if (responseObj.data.sortedServices.isNotEmpty()) {
-            binding.bannerViewpager.visibility = View.VISIBLE
-            val testAdapter = TestAdapter(responseObj.data.sortedServices)
-            binding.bannerViewpager.setAdapter(testAdapter)
-            binding.bannerViewpager.setScrollDuration(1000)
-            binding.bannerViewpager.setPageStyle(PageStyle.MULTI_PAGE)
-            binding.bannerViewpager.setIndicatorSliderGap(20) // Adjust spacing if needed
-                .setIndicatorStyle(IndicatorStyle.ROUND_RECT)
-                .setIndicatorHeight(20) // Adjust height for a pill-like shape
-                .setIndicatorSliderWidth(20, 50) // Unselected: 10px, Selected: 20px
-                .setIndicatorSliderColor(
-                    unselectedColor,
-                    selectedColor
-                ) // Adjust colors accordingly
-                .create(responseObj.data.sortedServices)
-        } else {
-            binding.bannerViewpager.visibility = View.GONE
-        }
-    }
-
-    /*private fun handlePromotionResponse(promotionResponse: PromotionResponse) {
-        cardItems.clear()
-        for (i in promotionResponse.promotiondata.promotionList.indices) {
-            val cardItem = CardItem(
-                promotionResponse.promotiondata.promotionList[i].id,
-                promotionResponse.promotiondata.promotionList[i].name,
-                R.drawable.facialconcept,
-                promotionResponse.promotiondata.promotionList[i].thumbnail.url,
-                promotionResponse.promotiondata.promotionList[i].content,
-                promotionResponse.promotiondata.promotionList[i].buttonName,
-                promotionResponse.promotiondata.promotionList[i].category,
-                promotionResponse.promotiondata.promotionList[i].views.toString(),
-                promotionResponse.promotiondata.promotionList[i].seriesId,
-                promotionResponse.promotiondata.promotionList[i].seriesType,
-                promotionResponse.promotiondata.promotionList[i].selectedContentType,
-                promotionResponse.promotiondata.promotionList[i].titleImage,
-                promotionResponse.promotiondata.promotionList[i].buttonImage
-            )
-            cardItems.add(i, cardItem)
-        }
-
-        if (cardItems.isNotEmpty()) {
-            binding.viewPager.visibility = View.VISIBLE
-            adapter = CircularCardAdapter(requireActivity(), cardItems) { item: CardItem ->
-
-                if (item.seriesType.equals("daily", ignoreCase = true) ||
-                    item.category.equals("CONTENT", ignoreCase = true) || item.category
-                        .equals("Test Category", ignoreCase = true)
-                ) {
-                    //Call Content Activity here
-                    callRlEditDetailActivity(item)
-                } else if (item.category.equals("live", ignoreCase = true)) {
-                    Toast.makeText(requireActivity(), "Live Content", Toast.LENGTH_SHORT).show()
-                } else if (item.category.equals("MIND_AUDIT", ignoreCase = true) ||
-                    item.category.equals("Mind Audit", ignoreCase = true) ||
-                    item.category.equals("Health Audit", ignoreCase = true) ||
-                    item.category.equals("mindAudit", ignoreCase = true)
-                ) {
-                    if ((requireActivity() as? HomeNewActivity)?.checkTrailEndedAndShowDialog() == true) {
-                        ActivityUtils.startMindAuditActivity(requireContext())
-                    }
-                } else if (item.category.equals("VOICE_SCAN", ignoreCase = true)) {
-                    val intent = Intent(requireActivity(), VoiceScanActivity::class.java)
-                    // Optionally pass data
-                    //intent.putExtra("key", "value");
-                    startActivity(intent)
-                } else if (item.category.equals("FACIAL_SCAN", ignoreCase = true)
-                    || item.category.equals("FACE_SCAN", ignoreCase = true)
-                    || item.category.equals("Health Cam", ignoreCase = true)
-                ) {
-                    val spm = SharedPreferenceManager.getInstance(requireActivity())
-                    (requireActivity() as? HomeNewActivity)?.callFaceScanClick()
-                    *//*  if (spm.userProfile != null && spm.userProfile.user_sub_status == 0) {
-                          // Not subscribed → redirect to free trial
-                          val intent = Intent(requireActivity(), BeginMyFreeTrialActivity::class.java)
-                          intent.putExtra(
-                              FeatureFlags.EXTRA_ENTRY_DEST,
-                              FeatureFlags.FACE_SCAN
-                          )
-                          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                          startActivity(intent)
-                      } else {
-                          var isFacialScanService = false
-                          try {
-                              isFacialScanService = spm.userProfile.facialScanService
-                          } catch (e: Exception) {
-                              e.printStackTrace()
-                          }
-
-                          if (isFacialScanService) {
-                              if (facialScanStatus) {
-                                  val intent =
-                                      Intent(
-                                          requireActivity(),
-                                          NewHealthCamReportActivity::class.java
-                                      )
-                                  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                  startActivity(intent)
-                              } else {
-                                  startFaceScanActivity(requireActivity())
-                              }
-                          } else {
-                              if (requireActivity() is HomeNewActivity) {
-                                  (requireActivity() as HomeNewActivity)
-                                      .showSwitchAccountDialog(requireActivity(), "", "")
-                              } else {
-                                  Toast.makeText(
-                                      requireActivity(),
-                                      "Please switch to your original account.",
-                                      Toast.LENGTH_SHORT
-                                  ).show()
-                              }
-                          }
-                      }*//*
-                }
-            }
-            binding.viewPager.adapter = adapter
-            adapter?.notifyDataSetChanged()
-
-
-            // Set up the initial position for circular effect
-            val initialPosition = Int.MAX_VALUE / 2
-            binding.viewPager.setCurrentItem(
-                initialPosition - initialPosition % cardItems.size,
-                false
-            )
-
-            binding.viewPager.apply {
-                clipToPadding = false
-                clipChildren = false
-                offscreenPageLimit = 5
-                setPadding(60, 0, 60, 0)
-            }
-
-            // Set offscreen page limit and page margin
-            binding.viewPager.offscreenPageLimit = 5 // Load adjacent pages
-            binding.viewPager.clipToPadding = false
-            binding.viewPager.clipChildren = false
-            binding.viewPager.setPageTransformer { page, position ->
-                val MIN_SCALE = 0.9f     // center = 1.0, side cards smaller
-                val MIN_ALPHA = 0.7f
-                val translationFactor = 4f  // controls overlap/spacing
-
-                // Keep center card on top
-                page.z = 1f - abs(position)
-
-                // Scale cards
-                val scale = MIN_SCALE + (1 - abs(position)) * (1 - MIN_SCALE)
-                page.scaleX = scale
-                page.scaleY = scale
-
-                // Fade cards slightly
-                val alpha = MIN_ALPHA + (1 - abs(position)) * (1 - MIN_ALPHA)
-                page.alpha = alpha
-
-                // Adjust horizontal position for peeking
-                page.translationX = -position * page.width / translationFactor
-            }
-
-        } else {
-            binding.viewPager.visibility = View.GONE
-        }
-    }*/
 
     private fun handlePromotionResponseWeekly(promotionResponse: PromotionWeeklyResponse) {
         cardItems.clear()
         promotionResponse.data.promotionList.indices.forEach { i ->
-            /* val cardItem = CardItem(
-                 promotionResponse.data.promotionList[i]._id,
-                 promotionResponse.data.promotionList[i].name,
-                 R.drawable.facialconcept,
-                 promotionResponse.data.promotionList[i].desktopImage,
-                 promotionResponse.data.promotionList[i].content,
-                 promotionResponse.data.promotionList[i].buttonName,
-                 promotionResponse.data.promotionList[i].category,
-                 promotionResponse.data.promotionList[i].views.toString(),
-                 promotionResponse.data.promotionList[i].seriesId,
-                 promotionResponse.data.promotionList[i].seriesType,
-                 promotionResponse.data.promotionList[i].selectedContentType,
-                 promotionResponse.data.promotionList[i].titleImage,
-                 promotionResponse.data.promotionList[i].buttonImage,
-                 promotionResponse.data.promotionList[i].contentId
-             )*/
             val promo = promotionResponse.data.promotionList[i]
             val cardItem = CardItem(
                 promo._id,
@@ -1082,48 +630,8 @@ class HomeExploreFragment : BaseFragment() {
                     showInternetError()
                     return@CircularCardAdapter
                 }
-
-                /*    if (item.seriesType.equals("daily", ignoreCase = true) ||
-                        item.category.equals("CONTENT", ignoreCase = true) || item.category
-                            .equals("Test Category", ignoreCase = true)
-                    ) {
-                        //Call Content Activity here
-                        callRlEditDetailActivity(item)
-                    } else if (item.category.equals("live", ignoreCase = true)) {
-                        Toast.makeText(requireActivity(), "Live Content", Toast.LENGTH_SHORT).show()
-                    } else if (item.category.equals("MIND_AUDIT", ignoreCase = true) ||
-                        item.category.equals("Mind Audit", ignoreCase = true) ||
-                        item.category.equals("Health Audit", ignoreCase = true) ||
-                        item.category.equals("mindAudit", ignoreCase = true)
-                    ) {
-                        if ((requireActivity() as? HomeNewActivity)?.checkTrailEndedAndShowDialog() == true) {
-                            ActivityUtils.startMindAuditActivity(requireContext())
-                        }
-                    } else if (item.category.equals("VOICE_SCAN", ignoreCase = true)) {
-                        val intent = Intent(requireActivity(), VoiceScanActivity::class.java)
-                        // Optionally pass data
-                        //intent.putExtra("key", "value");
-                        startActivity(intent)
-                    } else if (item.category.equals("FACIAL_SCAN", ignoreCase = true)
-                        || item.category.equals("FACE_SCAN", ignoreCase = true)
-                        || item.category.equals("Health Cam", ignoreCase = true)
-                    ) {
-                        val spm = SharedPreferenceManager.getInstance(requireActivity())
-                        (requireActivity() as? HomeNewActivity)?.callFaceScanClick()
-                    } else if (item.category.equals("snap_meal", ignoreCase = true)
-                            || item.category.equals("SNAP_MEAL", ignoreCase = true)
-                            || item.category.equals("Snap_Meal", ignoreCase = true)
-                    ){
-
-                    }*/
-
                 handlePromotionBannerTap(item)
-
             }
-
-
-
-
 
             binding.viewPager.adapter = adapter
             adapter?.notifyDataSetChanged()
@@ -1174,46 +682,46 @@ class HomeExploreFragment : BaseFragment() {
     }
 
     private fun handlePromotionBannerTap(item: CardItem) {
-        val seriesType = item.seriesType?.trim().orEmpty()
-        val category = item.category?.trim().orEmpty()
+        val seriesType = item.seriesType?.trim()?.lowercase().orEmpty()
+        val category = item.category?.trim()?.lowercase().orEmpty()
+        val homeActivity = requireActivity() as? HomeNewActivity
 
-        // DAILY => seriesId? else contentId
-        if (seriesType.equals("daily", ignoreCase = true)) {
-            val seriesId = item.seriesId?.trim().orEmpty()
-            if (seriesId.isNotEmpty()) {
-                startActivity(Intent(requireContext(), SeriesListActivity::class.java).apply {
-                    putExtra("contentId", seriesId)
-                })
-            } else {
-                val contentId = item.contentId?.trim().orEmpty()
-                // daily items in your JSON have selectedContentType = VIDEO/TEXT
-                openContentByType(item.selectedContentType, contentId)
-            }
-            return
-        }
-
-        // LIVE
-        if (seriesType.equals("live", ignoreCase = true) || category.equals(
-                "live",
-                ignoreCase = true
-            )
-        ) {
-            Toast.makeText(requireContext(), "Live Content", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // COMMERCIAL / others => by category (like iOS switch name)
-        when (normalizePromoCategory(category)) {
-            "face_scan" -> (requireActivity() as? HomeNewActivity)?.callFaceScanClick()
-            "mind_audit" -> {
-                if ((requireActivity() as? HomeNewActivity)?.checkTrailEndedAndShowDialog() == true) {
-                    ActivityUtils.startMindAuditActivity(requireContext())
+        when {
+            // 1. Handle DAILY Logic
+            seriesType == "daily" -> {
+                val seriesId = item.seriesId?.trim().orEmpty()
+                if (seriesId.isNotEmpty()) {
+                    startActivity(Intent(requireContext(), SeriesListActivity::class.java).apply {
+                        putExtra("contentId", seriesId)
+                    })
+                } else {
+                    openContentByType(item.selectedContentType, item.contentId?.trim().orEmpty())
                 }
             }
 
-            "meal_snap" -> (requireActivity() as? HomeNewActivity)?.callSnapMealClick()
-            "voice_scan" -> startActivity(Intent(requireContext(), VoiceScanActivity::class.java))
-            else -> { /* no-op */
+            // 2. Handle LIVE Logic
+            seriesType == "live" || category == "live" -> {
+                Toast.makeText(requireContext(), "Live Content", Toast.LENGTH_SHORT).show()
+            }
+
+            // 3. Handle COMMERCIAL / Specific Categories
+            else -> {
+                when (normalizePromoCategory(category)) {
+                    "face_scan" -> homeActivity?.callFaceScanClick()
+                    "mind_audit" -> {
+                        if (homeActivity?.checkTrailEndedAndShowDialog() == true) {
+                            ActivityUtils.startMindAuditActivity(requireContext())
+                        }
+                    }
+
+                    "meal_snap" -> homeActivity?.callSnapMealClick()
+                    "voice_scan" -> startActivity(
+                        Intent(
+                            requireContext(),
+                            VoiceScanActivity::class.java
+                        )
+                    )
+                }
             }
         }
     }

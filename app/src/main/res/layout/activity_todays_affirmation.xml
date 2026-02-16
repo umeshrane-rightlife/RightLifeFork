@@ -52,6 +52,7 @@
             android:layout_alignParentEnd="true"
             android:gravity="center"
             android:textSize="10sp"
+            android:textColor="@color/white"
             android:fontFamily="@font/dmsans_bold"
             android:backgroundTint="@color/color_green"
             android:enabled="false"/>

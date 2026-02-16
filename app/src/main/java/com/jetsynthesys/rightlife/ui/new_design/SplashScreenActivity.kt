@@ -25,8 +25,8 @@ import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.apimodel.appconfig.AppConfigResponse
 import com.jetsynthesys.rightlife.databinding.BottomsheetMaintenanceBinding
 import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity
-import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity.Companion.EXTRA_DEEP_LINK_TARGET
 import com.jetsynthesys.rightlife.showCustomToast
+import com.jetsynthesys.rightlife.ui.deeplink.DeepLinkTarget.Companion.EXTRA_DEEP_LINK_TARGET
 import com.jetsynthesys.rightlife.ui.new_design.pojo.LoggedInUser
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsEvent
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsLogger

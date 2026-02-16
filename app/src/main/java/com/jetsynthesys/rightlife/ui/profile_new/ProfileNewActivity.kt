@@ -577,17 +577,21 @@ class ProfileNewActivity : BaseActivity() {
             bottomSheetLayout.animation = slideUpAnimation
         }
 
-        // Expand fully on show
         bottomSheetDialog.setOnShowListener { dialog ->
             val bottomSheet =
-                (dialog as BottomSheetDialog).findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            val behavior = BottomSheetBehavior.from(bottomSheet!!)
+                (dialog as BottomSheetDialog)
+                    .findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                    ?: return@setOnShowListener
 
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED   // Open full height
-            behavior.skipCollapsed = true                          // No collapsed state
-            behavior.isFitToContents = true                        // Fit to content
-            behavior.isDraggable = false                           // Optional: disable swipe down
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+
+            behavior.state = BottomSheetBehavior.STATE_COLLAPSED  // Start collapsed
+            behavior.skipCollapsed = false                        // Allow collapsed state
+            behavior.isFitToContents = false                      // Needed to control peekHeight
+            behavior.peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+            behavior.isDraggable = false                          // Prevent expanding via swipe
         }
+
 
         val years = arrayOf(
             "13 years",
@@ -882,6 +886,9 @@ class ProfileNewActivity : BaseActivity() {
                     if (s?.length == 1 && index < otpFields.size - 1) {
                         otpFields[index + 1].requestFocus()
                     } else if (s?.length == 0 && index > 0) {
+                        otpFields.forEach { editText ->
+                            editText.setBackgroundResource(R.drawable.bg_otp_default)
+                        }
                         otpFields[index - 1].requestFocus()
                     }
                     val otp = otpFields.joinToString("") { it.text.toString().trim() }
@@ -961,6 +968,16 @@ class ProfileNewActivity : BaseActivity() {
         bindingDialog: DialogOtpVerificationBinding,
         timer: CountDownTimer
     ) {
+
+        val otpFields = listOf(
+            bindingDialog.etOtp1,
+            bindingDialog.etOtp2,
+            bindingDialog.etOtp3,
+            bindingDialog.etOtp4,
+            bindingDialog.etOtp5,
+            bindingDialog.etOtp6
+        )
+
         val call = apiService.verifyOtpForEmail(
             sharedPreferenceManager.accessToken, VerifyOtpEmailRequest(
                 email = email, otp = otp
@@ -984,8 +1001,14 @@ class ProfileNewActivity : BaseActivity() {
 
                     userDataResponse.userdata = userData
                     sharedPreferenceManager.saveUserProfile(userDataResponse)
+                    otpFields.forEach { editText ->
+                        editText.setBackgroundResource(R.drawable.bg_otp_success)
+                    }
 
                 } else {
+                    otpFields.forEach { editText ->
+                        editText.setBackgroundResource(R.drawable.bg_otp_error)
+                    }
                     bindingDialog.tvResult.text = "Incorrect OTP"
                     bindingDialog.tvResult.setTextColor(getColor(R.color.menuselected))
                 }
@@ -1006,6 +1029,16 @@ class ProfileNewActivity : BaseActivity() {
         bindingDialog: DialogOtpVerificationBinding,
         timer: CountDownTimer
     ) {
+
+        val otpFields = listOf(
+            bindingDialog.etOtp1,
+            bindingDialog.etOtp2,
+            bindingDialog.etOtp3,
+            bindingDialog.etOtp4,
+            bindingDialog.etOtp5,
+            bindingDialog.etOtp6
+        )
+
         val call = apiService.verifyOtpForPhoneNumber(
             sharedPreferenceManager.accessToken, VerifyOtpRequest(
                 phoneNumber = mobileNumber, otp = otp
@@ -1026,9 +1059,16 @@ class ProfileNewActivity : BaseActivity() {
                     binding.btnVerify.visibility = GONE
                     setEndDrawable(binding.etMobile)
 
+                        otpFields.forEach { editText ->
+                            editText.setBackgroundResource(R.drawable.bg_otp_success)
+                        }
+
                 } else {
                     bindingDialog.tvResult.text = "Incorrect OTP"
                     bindingDialog.tvResult.setTextColor(getColor(R.color.menuselected))
+                    otpFields.forEach { editText ->
+                        editText.setBackgroundResource(R.drawable.bg_otp_error)
+                    }
                 }
             }
 
@@ -1082,7 +1122,7 @@ class ProfileNewActivity : BaseActivity() {
         val weight = binding.tvWeight.text.toString()
         val gender = binding.tvGender.text.toString()
         val bodyFat = binding.tvBodyFat.text.toString()?.replace("%", "")?.trim() ?: ""
-        if (firstName.isEmpty() || lastName.isEmpty() || age.isEmpty() || gender.isEmpty() || height.isEmpty() || weight.isEmpty() || bodyFat.isEmpty()) {
+        if (firstName.isEmpty() || age.isEmpty() || gender.isEmpty() || height.isEmpty() || weight.isEmpty() || bodyFat.isEmpty()) {
             showCustomToast("Please fill all required fields before proceeding.")
         } else if (!validateUsername(firstName)) {
             showCustomToast("Please enter valid First Name")
