@@ -133,7 +133,7 @@ class BedWakeupTimeFragment : Fragment() {
 
         if (bedtime == wakeTime) {
             // Same time → block and inform
-            binding.tvSleepDuration.text = "0 hrs 0 mins"
+            binding.tvSleepDuration.text = "0 hr 0 min"
             //binding.btnContinue.isEnabled = false
             return
         }
@@ -144,13 +144,33 @@ class BedWakeupTimeFragment : Fragment() {
         var duration = Duration.between(bedtimeLocal, wakeTimeLocal)
         if (duration.isNegative) duration = duration.plusHours(24)
 
-        val hours = duration.toHours()
-        val minutes = duration.toMinutes() % 60
-        binding.tvSleepDuration.text = "${hours} hrs ${minutes} mins"
+        binding.tvSleepDuration.text = formatSleepDuration(duration)
 
         // Enable when valid
         binding.btnContinue.isEnabled = true
     }
+
+    private fun formatSleepDuration(duration: Duration): String {
+        val hours = duration.toHours()
+        val minutes = duration.toMinutes() % 60
+
+        val hourText = when (hours) {
+            0L -> "0 hr"
+            1L -> "1 hr"
+            else -> "$hours hrs"
+        }
+
+        val minuteText = when (minutes) {
+            0L -> "0 min"
+            1L -> "1 min"
+            else -> "$minutes mins"
+        }
+
+        return listOf(hourText, minuteText)
+            .filter { it.isNotEmpty() }
+            .joinToString(" ")
+    }
+
 
     private fun areTimesEqual(
         hourPickerA: NumberPicker,

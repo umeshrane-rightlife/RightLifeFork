@@ -55,7 +55,7 @@ class JournalListAdapter(
                 else
                     chipMore.visibility = View.VISIBLE
                 chip3.text = entry.tags?.get(0)
-                chipMore.text = "${entry.tags?.size?.minus(1)}+"
+                chipMore.text = "+${entry.tags?.size?.minus(1)}"
             }
 
             if (entry.emotion.isNullOrEmpty())
