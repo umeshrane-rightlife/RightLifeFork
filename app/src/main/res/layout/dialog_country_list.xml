@@ -59,8 +59,8 @@
             android:layout_height="wrap_content"
             android:text="I'm fine"
             android:backgroundTint="@color/menuselected"
+            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:visibility="invisible"
             android:layout_alignParentBottom="true"
             android:layout_marginHorizontal="40dp"
             android:layout_marginVertical="12dp"/>

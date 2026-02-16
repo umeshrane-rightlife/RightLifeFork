@@ -39,6 +39,7 @@ import com.jetsynthesys.rightlife.databinding.BottmsheetReminderSelectionBinding
 import com.jetsynthesys.rightlife.databinding.BottomsheetReminserSetBinding
 import com.jetsynthesys.rightlife.databinding.DialogPraticeTimeAffirmationBinding
 import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity
+import com.jetsynthesys.rightlife.showCustomToast
 import com.jetsynthesys.rightlife.ui.CommonAPICall
 import com.jetsynthesys.rightlife.ui.affirmation.adapter.AffirmationCardPagerAdapter
 import com.jetsynthesys.rightlife.ui.affirmation.adapter.WeekDayAdapter
@@ -494,6 +495,7 @@ class PractiseAffirmationPlaylistActivity : BaseActivity() {
             dialogBinding.tvTimeEvening.text = selectedEveningTime
         }
 
+        showCustomToast("Reminders saved successfully",true)
     }
 
     private fun showTimePickerDialog(
