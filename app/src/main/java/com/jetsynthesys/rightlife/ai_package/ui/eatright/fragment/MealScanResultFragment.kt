@@ -2,7 +2,6 @@ package com.jetsynthesys.rightlife.ai_package.ui.eatright.fragment
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -40,9 +39,6 @@ import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.RetrofitData.ApiService
 import com.jetsynthesys.rightlife.ai_package.base.BaseFragment
 import com.jetsynthesys.rightlife.ai_package.data.repository.ApiClient
-import com.jetsynthesys.rightlife.ai_package.model.request.SnapDish
-import com.jetsynthesys.rightlife.ai_package.model.request.SnapMealLogItem
-import com.jetsynthesys.rightlife.ai_package.model.request.SnapMealLogItems
 import com.jetsynthesys.rightlife.ai_package.model.request.SnapMealLogRequest
 import com.jetsynthesys.rightlife.ai_package.model.request.UpdateSnapMealLogRequest
 import com.jetsynthesys.rightlife.ai_package.model.request.UpdateSnapMealRequest
@@ -59,9 +55,7 @@ import com.jetsynthesys.rightlife.ai_package.ui.eatright.fragment.tab.createmeal
 import com.jetsynthesys.rightlife.ai_package.ui.eatright.model.MacroNutrientsModel
 import com.jetsynthesys.rightlife.ai_package.ui.eatright.model.MicroNutrientsModel
 import com.jetsynthesys.rightlife.ai_package.ui.eatright.model.RecipeDetailsLocalListModel
-import com.jetsynthesys.rightlife.ai_package.ui.home.HomeBottomTabFragment
 import com.jetsynthesys.rightlife.databinding.FragmentMealScanResultsBinding
-import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity
 import com.jetsynthesys.rightlife.ui.CommonAPICall
 import com.jetsynthesys.rightlife.ui.profile_new.pojo.PreSignedUrlData
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsEvent
@@ -77,7 +71,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
