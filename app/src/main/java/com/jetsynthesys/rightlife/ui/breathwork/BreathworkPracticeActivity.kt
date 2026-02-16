@@ -395,16 +395,17 @@ class BreathworkPracticeActivity : BaseActivity() {
     private fun showCompletedBottomSheetNew() {
         callPostMindFullDataAPI()
         binding.rlPracticeComplete.visibility = View.VISIBLE
+        binding.setIndicator.visibility = View.GONE
+        binding.sessionTimer.visibility = View.GONE
         binding.rlBreathingPracticeMain.visibility = View.GONE
         binding.btnExit.setOnClickListener {
             showCompletedBottomSheet()
-            /*
             if (isHapticFeedBack)
                 showCompletedBottomSheet()
             else {
                 callPostMindFullDataAPI()
                 finish()
-            }*/
+            }
         }
         binding.btnRepeat.setOnClickListener {
             // Reset for a new session

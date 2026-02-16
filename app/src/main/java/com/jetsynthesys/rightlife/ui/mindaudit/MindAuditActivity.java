@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.jetsynthesys.rightlife.BaseActivity;
 import com.jetsynthesys.rightlife.R;
+import com.jetsynthesys.rightlife.ui.DialogUtils;
 import com.jetsynthesys.rightlife.ui.healthaudit.HealthAuditPagerAdapter;
 import com.zhpan.indicator.IndicatorView;
 
@@ -124,41 +125,11 @@ public class MindAuditActivity extends BaseActivity {
 
     private void showExitDialog() {
         // Create the dialog
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.layout_exit_dialog_mind_new);
-        dialog.setCancelable(true);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        Window window = dialog.getWindow();
-        // Set the dim amount
-        WindowManager.LayoutParams layoutParams = window.getAttributes();
-        layoutParams.dimAmount = 0.7f; // Adjust the dim amount (0.0 - 1.0)
-        window.setAttributes(layoutParams);
-
-        // Find views from the dialog layout
-        //ImageView dialogIcon = dialog.findViewById(R.id.img_close_dialog);
-        ImageView dialogImage = dialog.findViewById(R.id.dialog_image);
-        TextView dialogText = dialog.findViewById(R.id.dialog_text);
-        Button dialogButtonStay = dialog.findViewById(R.id.dialog_button_stay);
-        Button dialogButtonExit = dialog.findViewById(R.id.dialog_button_exit);
-
-        // Optional: Set dynamic content
-        // dialogText.setText("Please find a quiet and comfortable place before starting");
-
-        // Set button click listener
-        dialogButtonStay.setOnClickListener(v -> {
-            // Perform your action
-            dialog.dismiss();
-            //Toast.makeText(VoiceScanActivity.this, "Scan feature is Coming Soon", Toast.LENGTH_SHORT).show();
-
-
-        });
-        dialogButtonExit.setOnClickListener(v -> {
-            dialog.dismiss();
-            this.finish();
-        });
-
-        // Show the dialog
-        dialog.show();
+        DialogUtils.INSTANCE.showExitDialog(this,
+                () -> {
+                    finish();
+                    return null;
+                });
     }
 
     private void getAssessmentResult() {

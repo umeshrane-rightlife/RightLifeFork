@@ -5,6 +5,7 @@ import android.content.Intent
 import com.jetsynthesys.rightlife.ai_package.ui.MainAIActivity
 import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity
 import com.jetsynthesys.rightlife.ui.NewSleepSounds.NewSleepSoundActivity
+import com.jetsynthesys.rightlife.ui.affirmation.PractiseAffirmationPlaylistActivity
 import com.jetsynthesys.rightlife.ui.affirmation.TodaysAffirmationActivity
 import com.jetsynthesys.rightlife.ui.breathwork.BreathworkActivity
 import com.jetsynthesys.rightlife.ui.context_screens.AffirmationContextScreenActivity
@@ -80,7 +81,7 @@ object ActivityUtils {
             )
         } else {
             context.startActivity(
-                Intent(context, TodaysAffirmationActivity::class.java)
+                Intent(context, PractiseAffirmationPlaylistActivity::class.java)
             )
         }
     }

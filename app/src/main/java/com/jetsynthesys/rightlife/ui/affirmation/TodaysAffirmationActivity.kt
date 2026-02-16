@@ -34,7 +34,6 @@ import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.databinding.ActivityTodaysAffirmationBinding
 import com.jetsynthesys.rightlife.databinding.LayoutDiscardBottomsheetBinding
 import com.jetsynthesys.rightlife.showCustomToast
-import com.jetsynthesys.rightlife.ui.BalloonAlignment
 import com.jetsynthesys.rightlife.ui.CommonAPICall
 import com.jetsynthesys.rightlife.ui.CommonResponse
 import com.jetsynthesys.rightlife.ui.affirmation.adapter.AffirmationCardPagerAdapter
@@ -45,7 +44,6 @@ import com.jetsynthesys.rightlife.ui.affirmation.pojo.AffirmationSelectedCategor
 import com.jetsynthesys.rightlife.ui.affirmation.pojo.CreateAffirmationPlaylistRequest
 import com.jetsynthesys.rightlife.ui.affirmation.pojo.GetAffirmationPlaylistResponse
 import com.jetsynthesys.rightlife.ui.showBalloon
-import com.jetsynthesys.rightlife.ui.showBalloonWithDim
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsEvent
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsLogger
 import com.jetsynthesys.rightlife.ui.utility.AnalyticsParam
@@ -388,10 +386,12 @@ class TodaysAffirmationActivity : BaseActivity() {
                         binding.addAffirmation, "Great choice, keep going.",
                         BalloonAlignment.BOTTOM,0.5f, xOff = 10, yOff = -100
                     )*/
-                    showBalloonWithDim(
+                    /*showBalloonWithDim(
                         binding.addAffirmation, "Great choice, keep going.", "AffirmationAddButton",
                         BalloonAlignment.BOTTOM, 0.5f, xOff = 10, yOff = -100
-                    )
+                    )*/
+
+                    showCustomToast("Great choice, keep going.", true)
                 }
 
                 2 -> {
@@ -404,16 +404,19 @@ class TodaysAffirmationActivity : BaseActivity() {
                         binding.addAffirmation,
                         "One more and your playlist is ready to go.", xOff = xOff, yOff = yOff
                     )
+
+                    showCustomToast("One more and your playlist is ready to go.", true)
                 }
 
                 3 -> {
                     //Toast.makeText(this, "Playlist Unlocked!", Toast.LENGTH_SHORT).show()
-                    showBalloon(
+                    /*showBalloon(
                         binding.addAffirmation,
                         "Playlist Unlocked!",
                         xOff = xOff,
                         yOff = yOff
-                    )
+                    )*/
+                    showCustomToast("Playlist Unlocked!", true)
                 }
 
                 else -> {
@@ -422,10 +425,11 @@ class TodaysAffirmationActivity : BaseActivity() {
                         "${affirmationPlaylist.size} Affirmation Added!",
                         Toast.LENGTH_SHORT
                     ).show()*/
-                    showBalloon(
+                    /*showBalloon(
                         binding.addAffirmation,
                         "${affirmationPlaylist.size} Affirmation Added!", xOff = xOff, yOff = yOff
-                    )
+                    )*/
+                    showCustomToast("${affirmationPlaylist.size} Affirmation Added!", true)
                 }
             }
         } else {
@@ -434,10 +438,12 @@ class TodaysAffirmationActivity : BaseActivity() {
                 "${affirmationPlaylistRequest.size} Affirmation Added!",
                 Toast.LENGTH_SHORT
             ).show()*/
-            showBalloon(
+            /*showBalloon(
                 binding.addAffirmation,
                 "${affirmationPlaylistRequest.size} Affirmation Added!", xOff = xOff, yOff = yOff
-            )
+            )*/
+
+            showCustomToast("${affirmationPlaylistRequest.size} Affirmation Added!", true)
         }
     }
 
@@ -843,7 +849,7 @@ class TodaysAffirmationActivity : BaseActivity() {
         card.setOnClickListener { dialog.dismiss() }
 
         dialog.setOnCancelListener {
-            if (sharedPreferenceManager.firstTimeUserForAffirmation)
+            /*if (sharedPreferenceManager.firstTimeUserForAffirmation)
                 showBalloonWithDim(
                     binding.btnCreateAffirmation,
                     "Select at least 3 affirmations to build your personal affirmation playlist!",
@@ -858,7 +864,9 @@ class TodaysAffirmationActivity : BaseActivity() {
                         xOff = 10,
                         yOff = -100
                     )
-                }
+                }*/
+
+            dialog.dismiss()
         }
         dialog.show()
         //sharedPreferenceManager.firstTimeUserAffirmationInfoShown = false

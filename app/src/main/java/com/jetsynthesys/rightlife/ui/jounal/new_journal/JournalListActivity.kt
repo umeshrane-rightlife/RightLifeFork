@@ -266,14 +266,15 @@ class JournalListActivity : BaseActivity() {
         val popupWindow = PopupWindow(popupView, 400, ViewGroup.LayoutParams.WRAP_CONTENT, true)
         listView.adapter = PopupMenuAdapter(this, menuItems) { item ->
             if (item.title == "Edit") {
-                val intent: Intent =
-                    when (journalEntry.title) {
+                val intent: Intent = Intent(this, Journal4QuestionsActivity::class.java)
+                   /* when (journalEntry.title) {
                         "Free Form" -> Intent(this, FreeFormJournalActivity::class.java)
                         "Bullet" -> Intent(this, BulletJournalActivity::class.java)
                         else -> {
                             Intent(this, GriefJournalActivity::class.java)
                         }
-                    }
+
+                    }*/
                 startActivity(intent.apply {
                     putExtra("JournalEntry", journalEntry)
                     //putExtra("StartDate", startDate)

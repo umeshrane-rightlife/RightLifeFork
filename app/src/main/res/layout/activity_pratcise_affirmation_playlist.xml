@@ -17,7 +17,7 @@
             android:id="@+id/ivClose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/close_affirmation"
+            android:src="@drawable/icon_back"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"/>
 

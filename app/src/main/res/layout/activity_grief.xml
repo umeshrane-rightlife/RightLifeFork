@@ -77,7 +77,7 @@
                         android:layout_height="wrap_content"
                         android:text="Prompt goes here"
                         android:textSize="18sp"
-                        android:fontFamily="@font/dmsans_regular"
+                        android:fontFamily="@font/merriweather_regular"
                         android:textColor="@color/txt_color_journal_prompt"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
