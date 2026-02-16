@@ -12,7 +12,6 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.jetsynthesys.rightlife.BaseActivity;
 import com.jetsynthesys.rightlife.R;
-import com.jetsynthesys.rightlife.newdashboard.HomeNewActivity;
 import com.jetsynthesys.rightlife.ui.DialogUtils;
 import com.jetsynthesys.rightlife.ui.payment.AccessPaymentActivity;
 import com.jetsynthesys.rightlife.ui.utility.Utils;
@@ -77,7 +76,7 @@ public class MindAuditFromActivity extends BaseActivity {
             int totalItems = adapter.getItemCount();
 
             if (currentItem == 0)
-                finishCurrentActivity();
+                showExitDialog();
             else
                 viewPager.setCurrentItem(currentItem - 1);
 
@@ -156,7 +155,7 @@ public class MindAuditFromActivity extends BaseActivity {
         // Set progress percentage based on the current fragment (out of 8)
         if (adapter.getItemCount() == 1) {
 
-            progressBar.setProgress(50);
+            progressBar.setProgress(0);
             return;
         }
         int progressPercentage = (int) (((fragmentIndex + 1) / (double) adapter.getItemCount()) * 100);
@@ -167,19 +166,12 @@ public class MindAuditFromActivity extends BaseActivity {
     private void showExitDialog() {
         DialogUtils.INSTANCE.showExitDialog(this,
                 () -> {
-                    if (isFromMindAuditResult)
-                        finish();
-                    else {
-                        Intent intent = new Intent(MindAuditFromActivity.this, HomeNewActivity.class);
-                        intent.putExtra("FROM_THINK_RIGHT", isFromThinkRight);
-                        startActivity(intent);
-                        finishAffinity();
-                    }
+                    finish();
                     return null;
                 });
     }
 
-    private void finishCurrentActivity(){
+    private void finishCurrentActivity() {
         finish();
         /*if (isFromMindAuditResult)
             finish();

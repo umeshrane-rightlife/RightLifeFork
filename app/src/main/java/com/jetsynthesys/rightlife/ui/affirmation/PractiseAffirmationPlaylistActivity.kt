@@ -14,7 +14,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
@@ -247,24 +246,30 @@ class PractiseAffirmationPlaylistActivity : BaseActivity() {
     }
 
     private fun showPracticeCompleteDialog() {
-        // Create the dialog
         val dialog = Dialog(this)
         val dialogBinding = DialogPraticeTimeAffirmationBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
         dialog.setCancelable(false)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
         val window = dialog.window
-
-        // Set the dim amount
         val layoutParams = window?.attributes
-        layoutParams?.dimAmount = 0.7f // Adjust the dim amount (0.0 - 1.0)
+
+// 1. Set the dim amount
+        layoutParams?.dimAmount = 0.7f
+
+// 2. Calculate Width with Margin
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+
+// Option A: Fixed Margin (e.g., 80px total margin)
+// layoutParams?.width = screenWidth - 160
+
+// Option B: Percentage (e.g., 93% of screen width) - Recommended
+        layoutParams?.width = (screenWidth * 0.93).toInt()
+
         window?.attributes = layoutParams
-
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val width = displayMetrics.widthPixels
-
-        layoutParams?.width = width
+        dialog.show()
 
         dialogBinding.ivDialogClose.setOnClickListener {
             dialog.dismiss()

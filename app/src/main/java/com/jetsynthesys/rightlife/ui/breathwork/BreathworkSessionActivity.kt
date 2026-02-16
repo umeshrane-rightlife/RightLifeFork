@@ -143,12 +143,14 @@ class BreathworkSessionActivity : BaseActivity() {
                 sessionCount++
                 binding.tvSessionCount.text = sessionCount.toString()
                 calculateSessiontime()
-            }else{
+            } else {
                 Utils.showNewDesignToast(this, "You cannot select more than 100 sets.", false)
             }
         }
 
         binding.btnContinue.setOnClickListener {
+            if (!validateInhaleExhaleForCustom())
+                return@setOnClickListener
             val intent = Intent(this, BreathworkPracticeActivity::class.java).apply {
                 putExtra("sessionCount", sessionCount * 4)
                 putExtra("BREATHWORK", breathingData)
@@ -194,6 +196,27 @@ class BreathworkSessionActivity : BaseActivity() {
         // Set initial values
 
         updateSessionTimer(sessionDurationSeconds * 4 * 1000L)
+        validateInhaleExhaleForCustom()
+    }
+
+    private fun validateInhaleExhaleForCustom(): Boolean {
+        if (breathingData?.title != "Custom") return true
+
+        // Force values to non-nullable Longs immediately
+        val inhale = breathingData?.breathInhaleTime?.toLong() ?: 0L
+        val exhale = breathingData?.breathExhaleTime?.toLong() ?: 0L
+
+        // Now the compiler knows exactly how to compare Long to Long
+        val isInvalid = exhale >= inhale
+
+        return if (isInvalid) {
+            binding.tvError.visibility = View.VISIBLE
+            binding.tvError.text = "Set exhale for $inhale seconds (inhale duration) or longer."
+            false
+        } else {
+            binding.tvError.visibility = View.GONE
+            true
+        }
     }
 
     private fun updateSessionTimer(millisUntilFinished: Long) {

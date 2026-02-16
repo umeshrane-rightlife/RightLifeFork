@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -327,6 +327,18 @@
             </LinearLayout>
             <!-- Continue Button -->
 
+
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_above="@id/btnContinue"
+                android:text="error"
+                android:layout_marginVertical="16dp"
+                android:textColor="@color/menuselected"
+                android:textSize="14sp"
+                android:fontFamily="@font/dmsans_semibold"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/btnContinue"

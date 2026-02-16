@@ -25,39 +25,35 @@ class JournalMoodAdapter(
             moodIcon.setImageResource(mood.iconResId)
             moodLabel.text = mood.name
 
-            // Apply selected state
+            // 1. Immediate UI state updates
             iconWrapper.isSelected = isSelected
             moodLabel.setTypeface(null, if (isSelected) Typeface.BOLD else Typeface.NORMAL)
-            moodIcon.alpha = if (isSelected) 1.0f else 1.0f
-            // Remove scaleType on selection
-            moodIcon.scaleType = if (isSelected) ImageView.ScaleType.FIT_CENTER else ImageView.ScaleType.CENTER_INSIDE
 
-            // Animate selection
+            // 2. Scale Logic: If selected, zoom in; otherwise, reset to 1.0f
+            val targetScale = if (isSelected) 1.25f else 1.0f
+
+            iconWrapper.animate()
+                .scaleX(targetScale)
+                .scaleY(targetScale)
+                .setDuration(200) // Smooth transition
+                .start()
+
             itemView.setOnClickListener {
+                if (selectedPosition == adapterPosition) return@setOnClickListener
+
                 val previousPosition = selectedPosition
                 selectedPosition = adapterPosition
 
-                if (previousPosition != RecyclerView.NO_POSITION) notifyItemChanged(previousPosition)
+                // Refresh only the items that changed for performance
+                if (previousPosition != RecyclerView.NO_POSITION) {
+                    notifyItemChanged(previousPosition)
+                }
                 notifyItemChanged(selectedPosition)
 
                 onMoodSelected(mood)
-
-                // Simple scale animation
-                iconWrapper.animate()
-                    .scaleX(1.1f)
-                    .scaleY(1.1f)
-                    .setDuration(100)
-                    .withEndAction {
-                        iconWrapper.animate()
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .setDuration(100)
-                            .start()
-                    }.start()
             }
         }
     }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoodViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_journal_mood, parent, false)
@@ -65,8 +61,7 @@ class JournalMoodAdapter(
     }
 
     override fun onBindViewHolder(holder: MoodViewHolder, position: Int) {
-        val isSelected = position == selectedPosition
-        holder.bind(moods[position], isSelected)
+        holder.bind(moods[position], position == selectedPosition)
     }
 
     override fun getItemCount() = moods.size

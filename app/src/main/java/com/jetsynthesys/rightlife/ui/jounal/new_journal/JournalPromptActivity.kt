@@ -266,7 +266,7 @@ class JournalPromptActivity : BaseActivity() {
                     questionsList.clear()
                     questions4.clear()
                     response.body()?.data?.let { questionsList.addAll(it) }
-                    questions4.addAll(questionsList.take(4))
+                    questions4.addAll(questionsList)
                     adapter.notifyDataSetChanged()
                 } else {
                     Toast.makeText(
