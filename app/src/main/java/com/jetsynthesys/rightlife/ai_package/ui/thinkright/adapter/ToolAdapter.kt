@@ -87,6 +87,12 @@ class ToolAdapter(context: Context, private val tools: List<ModuleData>, val onT
                     .placeholder(R.drawable.ic_plus)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
+            "Custom" -> {
+                Glide.with(mContext)
+                    .load(  R.drawable.custom_image)
+                    .placeholder(R.drawable.ic_plus)
+                    .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
+            }
         }
 
         holder.mainLayout.setOnClickListener {
