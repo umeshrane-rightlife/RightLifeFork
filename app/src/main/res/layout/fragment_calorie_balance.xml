@@ -74,7 +74,7 @@
             <androidx.cardview.widget.CardView
                 android:id="@+id/calorie_balance_layout"
                 android:layout_width="match_parent"
-                android:layout_height="600dp"
+                android:layout_height="wrap_content"
                 android:elevation="4dp"
                 android:background="@color/white"
                 app:cardCornerRadius="10dp"
@@ -87,7 +87,7 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="wrap_content">
 
                     <RadioGroup
                         android:id="@+id/tabGroup"
@@ -258,7 +258,7 @@
                         android:layout_width="110dp"
                         android:layout_height="62dp"
                         android:elevation="4dp"
-                        android:visibility="invisible"
+                        android:visibility="gone"
                         android:background="@color/white"
                         app:cardCornerRadius="10dp"
                         android:layout_marginStart="20dp"

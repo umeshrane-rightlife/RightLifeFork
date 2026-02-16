@@ -1,6 +1,7 @@
 package com.jetsynthesys.rightlife.ai_package.model.request
 
 data class SaveDishLogRequest(
+    val date: String,
     val meal_type: String?,
     val recipes: List<RecipeLogRequest>,
     val ingredients: List<IngredientLogRequest>

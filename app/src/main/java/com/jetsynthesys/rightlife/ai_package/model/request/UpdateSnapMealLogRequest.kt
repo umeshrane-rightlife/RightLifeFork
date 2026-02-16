@@ -4,6 +4,8 @@ import com.jetsynthesys.rightlife.ai_package.model.response.IngredientRecipeDeta
 
 data class UpdateSnapMealLogRequest(
     val meal_name: String,
+    val date: String,
+    val meal_type: String?,
     val meal_log: List<IngredientRecipeDetails>
 )
 

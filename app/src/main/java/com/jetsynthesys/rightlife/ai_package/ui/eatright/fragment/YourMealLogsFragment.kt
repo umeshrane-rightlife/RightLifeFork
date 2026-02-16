@@ -946,6 +946,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("recipeId", foodData.recipe.id)
             args.putString("mealType", "breakfast")
             args.putString("snapRecipeName", foodData.recipe.recipe)
+            args.putString("selectedMealDate", selectedMealDate)
             dishLists.add(foodData.recipe)
             recipeDetailsLocalListModel = RecipeDetailsLocalListModel(dishLists)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
@@ -975,6 +976,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("snapMealLog", "snapMealLog")
             args.putString("snapImageUrl", snapMealDetail.image_url)
             args.putString("mealName", snapMealDetail.meal_name)
+            args.putString("selectedMealDate", selectedMealDate)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
             fragment.arguments = args
             requireActivity().supportFragmentManager.beginTransaction().apply {
@@ -1001,6 +1003,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("recipeId", foodData.recipe.id)
             args.putString("mealType", "morning_snack")
             args.putString("snapRecipeName", mealNames)
+            args.putString("selectedMealDate", selectedMealDate)
             dishLists.add(foodData.recipe)
             recipeDetailsLocalListModel = RecipeDetailsLocalListModel(dishLists)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
@@ -1030,6 +1033,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("snapMealLog", "snapMealLog")
             args.putString("snapImageUrl", snapMealDetail.image_url)
             args.putString("mealName", snapMealDetail.meal_name)
+            args.putString("selectedMealDate", selectedMealDate)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
             fragment.arguments = args
             requireActivity().supportFragmentManager.beginTransaction().apply {
@@ -1056,6 +1060,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("recipeId", foodData.recipe.id)
             args.putString("mealType", "lunch")
             args.putString("snapRecipeName", mealNames)
+            args.putString("selectedMealDate", selectedMealDate)
             dishLists.add(foodData.recipe)
             recipeDetailsLocalListModel = RecipeDetailsLocalListModel(dishLists)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
@@ -1086,6 +1091,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("snapMealLog", "snapMealLog")
             args.putString("snapImageUrl", snapMealDetail.image_url)
             args.putString("mealName", snapMealDetail.meal_name)
+            args.putString("selectedMealDate", selectedMealDate)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
             fragment.arguments = args
             requireActivity().supportFragmentManager.beginTransaction().apply {
@@ -1112,6 +1118,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("recipeId", foodData.recipe.id)
             args.putString("mealType", "evening_snack")
             args.putString("snapRecipeName", mealNames)
+            args.putString("selectedMealDate", selectedMealDate)
             dishLists.add(foodData.recipe)
             recipeDetailsLocalListModel = RecipeDetailsLocalListModel(dishLists)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
@@ -1141,6 +1148,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("snapMealLog", "snapMealLog")
             args.putString("snapImageUrl", snapMealDetail.image_url)
             args.putString("mealName", snapMealDetail.meal_name)
+            args.putString("selectedMealDate", selectedMealDate)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
             fragment.arguments = args
             requireActivity().supportFragmentManager.beginTransaction().apply {
@@ -1167,6 +1175,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("recipeId", foodData.recipe.id)
             args.putString("mealType", "dinner")
             args.putString("snapRecipeName", mealNames)
+            args.putString("selectedMealDate", selectedMealDate)
             dishLists.add(foodData.recipe)
             recipeDetailsLocalListModel = RecipeDetailsLocalListModel(dishLists)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
@@ -1196,6 +1205,7 @@ class YourMealLogsFragment : BaseFragment<FragmentYourMealLogsBinding>(), Delete
             args.putString("snapMealLog", "snapMealLog")
             args.putString("snapImageUrl", snapMealDetail.image_url)
             args.putString("mealName", snapMealDetail.meal_name)
+            args.putString("selectedMealDate", selectedMealDate)
             args.putParcelable("snapDishLocalListModel", recipeDetailsLocalListModel)
             fragment.arguments = args
             requireActivity().supportFragmentManager.beginTransaction().apply {

@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:text="Mindfulness Analysis"
             android:textSize="18sp"
-            android:fontFamily="@font/dmsans_bold"
+            android:fontFamily="@font/merriweather_bold"
             android:textColor="@color/eatright_text_color"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

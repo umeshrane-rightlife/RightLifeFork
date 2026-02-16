@@ -173,6 +173,7 @@ class FrequentlyAddDishBottomSheet : BottomSheetDialogFragment() {
 //            mealLogList.add(mealLogData)
         }
         val mealLogRequest = SaveDishLogRequest(
+            date = formattedDate,
             meal_type = mealType ?: "dd",
             recipes = recipes,
             ingredients = ingredients

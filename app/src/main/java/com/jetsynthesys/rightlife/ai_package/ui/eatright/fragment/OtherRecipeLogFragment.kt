@@ -356,6 +356,7 @@ class OtherRecipeLogFragment : BaseFragment<FragmentDishBinding>() {
             }
         }
         val dishLogRequest = SaveDishLogRequest(
+            date = selectedMealDate,
             meal_type = mealType ?: "dd",
             recipes = recipes,
             ingredients = ingredients

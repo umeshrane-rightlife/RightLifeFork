@@ -151,7 +151,7 @@ class AddWorkoutSearchFragment : BaseFragment<FragmentAddWorkoutSearchBinding>()
         }
 
         lastWorkoutRecord = arguments?.let { BundleCompat.getParcelable(it, "workoutRecord", WorkoutSessionRecord::class.java) }
-        addLog.isEnabled = false
+        //addLog.isEnabled = false
 
         // Back button
         addSearchFragmentBackButton.setOnClickListener {
@@ -436,6 +436,7 @@ class AddWorkoutSearchFragment : BaseFragment<FragmentAddWorkoutSearchBinding>()
         } else {
             addLog.isEnabled = durationMinutes > 0
             if (durationMinutes == 0) caloriesText.text = "0"
+            addLog.isEnabled = true
         }
         refreshPickers()
     }

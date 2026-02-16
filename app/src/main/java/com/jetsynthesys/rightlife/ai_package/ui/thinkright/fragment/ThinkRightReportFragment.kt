@@ -687,7 +687,7 @@ class ThinkRightReportFragment : BaseFragment<FragmentThinkRightLandingBinding>(
                             body.data?.formattedData?.lastOrNull()?.duration?.let { duration ->
                                 tvMindfullMinute.text = formatDuration(duration)
                             } ?: run {
-                                tvMindfullMinute.text = "0 min"   // ← fallback when no data
+                                tvMindfullMinute.text = "00 hr 00 min"   // ← fallback when no data
                             }
                         } else {
                             showNoDataState()
@@ -726,8 +726,9 @@ class ThinkRightReportFragment : BaseFragment<FragmentThinkRightLandingBinding>(
 
         return when {
             hours > 0 && minutes > 0 -> "$hours $hrText $minutes $minText"
-            hours > 0 -> "$hours $hrText"
-            else -> "$minutes $minText"
+            hours > 0 && minutes == 0 -> "$hours $hrText 00 $minText"
+            minutes == 0 -> "00 $hrText 00 $minText"  // ✅ Yahan bhi 00 min
+            else -> "00 $hrText $minutes $minText"
         }
     }
 
@@ -1521,6 +1522,7 @@ class AssessmentPagerAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.assessment_result_item, parent, false)
+
         return ViewHolder(view)
     }
 

@@ -429,13 +429,13 @@ class CalorieBalance : BaseFragment<FragmentCalorieBalanceBinding>() {
 
                     } else {
                         Log.e("ChartClick", "Index $x out of bounds for labelsDate size ${labelsDate.size}")
-                        selectHeartRateLayout.visibility = View.INVISIBLE
+                        selectHeartRateLayout.visibility = View.GONE
                     }
                 }
             }
             override fun onNothingSelected() {
                 Log.d("ChartClick", "Nothing selected")
-                selectHeartRateLayout.visibility = View.INVISIBLE
+                selectHeartRateLayout.visibility = View.GONE
                 removeVerticalDottedLine()
                 dottedLine.visibility = View.GONE
             }
@@ -532,7 +532,7 @@ class CalorieBalance : BaseFragment<FragmentCalorieBalanceBinding>() {
                                 } else {
                                     barChart.visibility = View.VISIBLE
                                     layoutLineChart.visibility = View.GONE
-                                    selectHeartRateLayout.visibility = View.INVISIBLE
+                                    selectHeartRateLayout.visibility = View.GONE
                                     dottedLine.visibility = View.GONE
                                     updateChart(entries, labels, labelsDate)
                                 }
