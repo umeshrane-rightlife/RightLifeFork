@@ -82,10 +82,11 @@ class MindAuditResultActivity : BaseActivity() {
                     putExtra("IS_FROM_MIND_AUDIT_RESULT", true)
                 })
             } else {
-                startActivity(Intent(
-                    this,
-                    MASuggestedAssessmentActivity::class.java
-                ).apply { putExtra("SelectedAssessment", selectedAssessment) })
+                startActivity(
+                    Intent(
+                        this,
+                        MASuggestedAssessmentActivity::class.java
+                    ).apply { putExtra("SelectedAssessment", selectedAssessment) })
             }
         }
 
@@ -321,7 +322,7 @@ class MindAuditResultActivity : BaseActivity() {
                         setRainbowView(assessmentTaken.interpretations.anxiety.score.toInt())
                         //setLeftRainbowView(assessmentTaken.interpretations.anxiety.score.toInt())
 
-                        val explanation = getDASS21AnxietyExplanation(
+                        getDASS21AnxietyExplanation(
                             assessmentTaken.interpretations.anxiety.score.toFloat()
                         )
                         //binding.tvResultExplanationTitle.text = explanation.first
@@ -390,7 +391,7 @@ class MindAuditResultActivity : BaseActivity() {
                             resources.getColor(getColorResForScore(assessmentTaken.interpretations.depression.level))
                         )
                         //setCenterRainbowView(assessmentTaken.interpretations.depression.score.toInt())
-                        val explanation = getDASS21DepressionExplanation(
+                        getDASS21DepressionExplanation(
                             assessmentTaken.interpretations.depression.score.toFloat()
                         )
                         //binding.tvResultExplanationTitle.text = explanation.first
@@ -461,7 +462,7 @@ class MindAuditResultActivity : BaseActivity() {
                         cardviewMainscore3.setOnClickListener {
                             //setRightRainbowView(assessmentTaken.interpretations.stress.score.toInt())
                             //setRainbowView(assessmentTaken.interpretations.stress.score.toInt())
-                            val explanation = getDASS21StressExplanation(
+                            getDASS21StressExplanation(
                                 assessmentTaken.interpretations.stress.score.toFloat()
                             )
                             cardviewMainscore3.setCardBackgroundColor(
@@ -614,8 +615,8 @@ class MindAuditResultActivity : BaseActivity() {
                     }
                     cardviewMainscoreHappiness.setOnClickListener(View.OnClickListener {
 
-                            binding.mainScoreLevelDesciption.visibility =
-                                if (binding.mainScoreLevelDesciption.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                        binding.mainScoreLevelDesciption.visibility =
+                            if (binding.mainScoreLevelDesciption.visibility == View.VISIBLE) View.GONE else View.VISIBLE
 
                     })
                     showAssessmentScorebar("OHQ")
@@ -799,6 +800,7 @@ class MindAuditResultActivity : BaseActivity() {
         binding.rainbowView.setStrokeWidth(60f)
         binding.rainbowView.setArcSpacing(8f)
     }
+
     private fun setRainbowViewPHQ9(score: Int) {
         binding.rainbowView.visibility = View.VISIBLE
         binding.fanArcView.visibility = View.GONE
@@ -1029,6 +1031,11 @@ class MindAuditResultActivity : BaseActivity() {
 
 
         chip.setOnClickListener { view ->
+
+
+            binding.tvCheckprogressDays.text = if (isShowIcon) "Start Assessment"
+            else "Re - take Assessment"
+
             val position = binding.chipGroup1.indexOfChild(view)
             val selectedChip = binding.chipGroup1.getChildAt(position) as Chip
             Log.d("selected chip", " --" + selectedChip.text.toString())
@@ -1039,7 +1046,7 @@ class MindAuditResultActivity : BaseActivity() {
                     binding.llOtherSection.visibility = View.VISIBLE
                     binding.scrollviewResult.visibility = View.GONE
                     binding.rlAssessmentNotTaken.visibility = View.GONE
-                    binding.tvCheckprogressDays.visibility =
+                    binding.rlCheckProgress.visibility =
                         if (MindAuditDateCount == 0) View.VISIBLE else View.GONE
                     if (suggestedAssessmentString.isEmpty())
                         binding.tvOtherAssessment.visibility = View.GONE
@@ -1086,28 +1093,31 @@ class MindAuditResultActivity : BaseActivity() {
             else -> R.color.red_ext_severe
         }
     }
+
     private fun getColorResForScorePhq9(score: Int): Int {
         return when (score) {
             in 0..4 -> R.color.green_minimal
-            in 5..9-> R.color.cyan_mild
+            in 5..9 -> R.color.cyan_mild
             in 10..14 -> R.color.blue_moderate
             in 15..19 -> R.color.orange_severe
             else -> R.color.red_ext_severe
         }
     }
+
     private fun getColorResForScoreCAS(score: Int): Int {
         return when (score) {
             in 0..13 -> R.color.green_minimal
-            in 14..19-> R.color.blue_moderate
+            in 14..19 -> R.color.blue_moderate
             in 20..28 -> R.color.orange_severe
             in 29..63 -> R.color.red_ext_severe
             else -> R.color.red_ext_severe
         }
     }
+
     private fun getColorResForScoreGAD7(score: Int): Int {
         return when (score) {
             in 0..4 -> R.color.green_minimal
-            in 5..9-> R.color.blue_moderate
+            in 5..9 -> R.color.blue_moderate
             in 10..14 -> R.color.orange_severe
             in 15..21 -> R.color.red_ext_severe
             else -> R.color.red_ext_severe

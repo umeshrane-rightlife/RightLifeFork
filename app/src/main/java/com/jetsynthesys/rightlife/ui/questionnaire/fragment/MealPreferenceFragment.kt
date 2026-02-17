@@ -21,10 +21,10 @@ class MealPreferenceFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val mealOptions = listOf(
-        MealOption(R.drawable.ic_meal_1, "1-2 meals—it's enough for me"),
-        MealOption(R.drawable.ic_meal_2, "3 meals—a balanced routine"),
-        MealOption(R.drawable.ic_meal_3, "4-5 meals—I eat often but manage well"),
-        MealOption(R.drawable.ic_meal_4, "6+ meals—I eat throughout the day")
+        MealOption(R.drawable.ic_meal_1, "1-2 meals-it's enough for me"),
+        MealOption(R.drawable.ic_meal_2, "3 meals-a balanced routine"),
+        MealOption(R.drawable.ic_meal_3, "4-5 meals-I eat often but manage well"),
+        MealOption(R.drawable.ic_meal_4, "6+ meals-I eat throughout the day")
     )
 
     private var question: Question? = null
