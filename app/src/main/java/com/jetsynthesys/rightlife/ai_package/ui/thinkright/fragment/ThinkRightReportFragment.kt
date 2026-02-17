@@ -1229,7 +1229,9 @@ class ThinkRightReportFragment : BaseFragment<FragmentThinkRightLandingBinding>(
                             assessmentList = parseAssessmentData(assessmentResponse.result)
                             adapter = AssessmentPagerAdapter(assessmentList)
                             viewPager.adapter = adapter
-
+                            viewPager.post {
+                                updateViewPagerHeight(viewPager)
+                            }
                             val transformer = CompositePageTransformer().apply {
                                 addTransformer(MarginPageTransformer(16))
                                 addTransformer { page, position ->
@@ -1239,13 +1241,14 @@ class ThinkRightReportFragment : BaseFragment<FragmentThinkRightLandingBinding>(
                             }
                             viewPager.setPageTransformer(transformer)
                             viewPager.offscreenPageLimit = 3
-
-                            // YE 2 LINES ADD KI HAIN → PROBLEM YAHIN THI
-                            dotsLayout.removeAllViews()  // ← SABSE ZAROORI LINE
-                            itemCount = adapter.itemCount  // ← pehle set karo, baad mein loop
+                            dotsLayout.removeAllViews()
+                            itemCount = adapter.itemCount
 
                             viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                                 override fun onPageSelected(position: Int) {
+                                    viewPager.post {
+                                        updateViewPagerHeight(viewPager)
+                                    }
                                     for (i in 0 until itemCount) {
                                         val dot = dotsLayout.getChildAt(i) ?: continue
                                         val isActive = i == position
@@ -1306,6 +1309,21 @@ class ThinkRightReportFragment : BaseFragment<FragmentThinkRightLandingBinding>(
 
     fun Int.dpToPx(): Int =
         (this * Resources.getSystem().displayMetrics.density).toInt()
+
+    private fun updateViewPagerHeight(viewPager: ViewPager2) {
+        val recyclerView = viewPager.getChildAt(0) as RecyclerView
+        val view = recyclerView.layoutManager?.findViewByPosition(viewPager.currentItem)
+
+        view?.post {
+            val wMeasureSpec = View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY)
+            val hMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            view.measure(wMeasureSpec, hMeasureSpec)
+
+            val height = view.measuredHeight
+            viewPager.layoutParams.height = height
+            viewPager.requestLayout()
+        }
+    }
 
     private fun parseAssessmentData(listData: List<AssessmentResult>): MutableList<AssessmentResultData> {
         val resultList = mutableListOf<AssessmentResultData>()

@@ -22,6 +22,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.snackbar.Snackbar
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.ai_package.base.BaseFragment
@@ -89,36 +90,42 @@ class ToolsAdapterList(private val context1: Context, private val items: List<To
                         Glide.with(contexts)
                             .load("https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/dccba8e93b41dc3f856d7c18b13d5783.png")
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "Box Breathing" ->{
                         Glide.with(contexts)
                             .load("https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/62e1e78cca28251bf83e46bc0018ba0b.png")
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "Alternate Nostril Breathing" ->{
                         Glide.with(contexts)
                             .load( "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/4a37e4954896bd3a53d90424be77a724.png")
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "Equal Breathing" ->{
                         Glide.with(contexts)
                             .load( "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/4a37e4954896bd3a53d90424be77a724.png")
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "4-7-8 Breathing" ->{
                         Glide.with(contexts)
                             .load(  R.drawable.four_seven_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "Free Form" -> {
                         Glide.with(contexts)
                             .load(  R.drawable.free_form_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
 
@@ -126,6 +133,7 @@ class ToolsAdapterList(private val context1: Context, private val items: List<To
                         Glide.with(contexts)
                             .load(  R.drawable.bullet_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
 
@@ -133,6 +141,7 @@ class ToolsAdapterList(private val context1: Context, private val items: List<To
                         Glide.with(contexts)
                             .load(  R.drawable.gratitude_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
 
@@ -140,12 +149,14 @@ class ToolsAdapterList(private val context1: Context, private val items: List<To
                         Glide.with(contexts)
                             .load(  R.drawable.grief_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                     "Custom" -> {
                         Glide.with(contexts)
                             .load(  R.drawable.custom_image)
                             .placeholder(R.drawable.ic_plus)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(holder.itemView.findViewById<ImageView>(R.id.tool_icon))
                     }
                 }

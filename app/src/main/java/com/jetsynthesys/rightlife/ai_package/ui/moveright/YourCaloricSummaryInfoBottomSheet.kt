@@ -103,12 +103,12 @@ class YourCaloricSummaryInfoBottomSheet : BottomSheetDialogFragment() {
 
 <h3>What You Need to Do</h3>
 <ul>
-  <li>🔹 <b>Log Your Meals</b> → Enter your food intake to keep track of Calories In. RightLife does the math for you.</li>
-  <li>🔹 <b>Record Your Activity or Sync Your Wearable</b> → Workouts, steps, and movement all count. RightLife updates Calories Out to reflect your energy burn.</li>
-  <li>🔹 <b>Check Your Balance</b> → Know if you’re in a deficit, surplus, or maintenance. We’ll make the adjustments for you.</li>
+  <li> <b>Log Your Meals</b> → Enter your food intake to keep track of Calories In. RightLife does the math for you.</li>
+  <li> <b>Record Your Activity or Sync Your Wearable</b> → Workouts, steps, and movement all count. RightLife updates Calories Out to reflect your energy burn.</li>
+  <li> <b>Check Your Balance</b> → Know if you’re in a deficit, surplus, or maintenance. We’ll make the adjustments for you.</li>
 </ul>
 
-<p><b>By regularly checking your Caloric Summary</b>, you can make better decisions about your nutrition, workouts, and daily habits—helping you achieve your fitness and health goals more effectively! 🚀</p>
+<p><b>By regularly checking your Caloric Summary</b>, you can make better decisions about your nutrition, workouts, and daily habits—helping you achieve your fitness and health goals more effectively! </p>
     """.trimIndent()
         summary.text = Html.fromHtml(htmlContent, Html.FROM_HTML_MODE_LEGACY)
     }

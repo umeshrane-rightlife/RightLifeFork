@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp"
-    android:background="@drawable/record_emotion_bg">
+
+    android:background="@drawable/new_affirmation">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,7 +41,7 @@
             android:layout_weight="1"
             android:layout_marginTop="5dp"
             android:layout_marginEnd="10dp"
-            android:src="@drawable/close"
+            android:src="@drawable/close_breathwork"
             />
         </androidx.constraintlayout.widget.ConstraintLayout>
         <ImageView
@@ -52,13 +52,17 @@
             android:layout_marginTop="5dp"
             android:layout_weight="1"
             android:layout_marginEnd="10dp"
-            android:src="@drawable/mind_audit_ss"
+            android:src="@drawable/clinical_assessment_dialog"
             />
         <TextView
             android:text="Understanding Clinical Assessments in RightLife"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:fontFamily="@font/dmsans_bold"
             android:layout_marginTop="10dp"
+            android:textColor="#984C01"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
@@ -96,125 +100,203 @@
 
         <!-- Overview Text -->
         <TextView
-            android:text="RightLife includes six clinically validated assessments to help you track your mental health and sleep quality. These assessments provide insights into depression, anxiety, stress, anger, happiness, and sleep disorders."
+            android:id="@+id/tv_assessment_info"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:textSize="14sp"
+            android:textColor="@color/black"
             android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <TextView
-            android:text="Each assessment is scientifically backed, quick to complete, and helps you understand patterns in your well-being over time."
+            android:id="@+id/tv_assessment_info1"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_marginBottom="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <!-- Begin Assessments -->
         <!-- PHQ-9 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+
+            android:background="#FDF6E3">
+            <TextView
+                android:text=" PHQ-9: Depression Screening"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#984C01"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp" />
+
+            <!-- GAD-7 -->
+            <TextView
+                android:id="@+id/tvPhq9Info"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+
+        </LinearLayout>
+
         <TextView
-            android:text="1. PHQ-9: Depression Screening"
+            android:text="GAD-7: Anxiety Screening"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="#984C01"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
-
-        <!-- GAD-7 -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Assesses the severity of depression symptoms over the past two weeks.\n• Total Score Range: 0–27\n• Categories: Minimal (0–4), Mild (5–9), Moderate (10–14), Moderately Severe (15–19), Severe (20–27)\n• Why it matters: Higher scores may indicate a need for further evaluation or support.\n📌 Tip: Regularly tracking your PHQ-9 score helps you identify trends and take proactive steps."
-            android:textSize="14sp" />
-
-        <TextView
-            android:text="2. GAD-7: Anxiety Screening"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp" />
-        <TextView
-            android:text="Evaluates symptoms of generalized anxiety disorder (GAD).\n• Total Score Range: 0–21\n• Categories: Minimal (0–4), Mild (5–9), Moderate (10–14), Severe (15–21)\n• Why it matters: Consistently high scores may indicate persistent anxiety.\n📌 Tip: Pair this with breathing practices and journaling to manage anxiety."
+            android:id="@+id/tvPhq9Info1"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-
-        <!-- DASS-21 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FDF6E3">
         <TextView
-            android:text="3. DASS-21: Depression, Anxiety, and Stress Scale"
+            android:text=" DASS-21: Depression, Anxiety, and Stress Scale"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="#984C01"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
         <TextView
-            android:text="Comprehensive screening for:\n• Depression\n• Anxiety\n• Stress\n• Why it matters: DASS-21 provides a broad view of emotional distress.\n📌 Tip: Use DASS-21 when you want detailed mental health analysis."
+            android:id="@+id/tvPhq9Info2"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
+    </LinearLayout>
+        <!-- DASS-21 -->
+
 
         <!-- Clinical Anger Scale -->
         <TextView
-            android:text="4. Clinical Anger Scale"
+            android:text="Clinical Anger Scale"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:textColor="#984C01"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
         <TextView
-            android:text="Evaluates intensity and frequency of anger.\n• Total Score Range: 0–63\n• Why it matters: Chronic anger can harm your mental and physical health.\n📌 Tip: High scores suggest relaxation techniques, exercise, or therapy may help."
+            android:id="@+id/tvPhq9Info3"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
         <!-- Oxford Happiness Questionnaire -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FDF6E3">
         <TextView
-            android:text="5. Oxford Happiness Questionnaire"
+            android:text="Oxford Happiness Questionnaire"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:textColor="#984C01"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
         <TextView
-            android:text="Measures overall happiness and life satisfaction.\n• Total Score Range: 0–6 (higher = more happiness)\n• Why it matters: Tracking happiness helps identify positive patterns.\n📌 Tip: Use gratitude and joyful activities to improve scores."
+            android:id="@+id/tvPhq9Info4"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
+    </LinearLayout>
+
 
         <!-- RightLife Sleep Audit -->
         <TextView
-            android:text="6. RightLife Sleep Audit"
+            android:text="RightLife Sleep Audit"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="#984C01"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
         <TextView
-            android:text="Evaluates key sleep concerns:\n1⃣ Excessive Daytime Sleepiness\n2⃣ Insomnia\n3⃣ Sleep Apnea\n4⃣ Tiredness\n• Why it matters: Poor sleep affects physical and mental health.\n📌 Tip: Adjust your sleep schedule and environment for better rest."
+            android:id="@+id/tvPhq9Info5"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
         <!-- Footer -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FDF6E3">
         <TextView
             android:text="How to Use Your Results"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:textColor="#984C01"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp" />
         <TextView
-            android:text="• Check your trends: Take assessments twice a month.\n• Take action: Use insights for better mental and physical health.\n• Seek support: Consult a provider for consistently high scores.\n\nThese assessments empower you with meaningful insights. Use them regularly to improve your well-being."
+            android:id="@+id/tvPhq9Info6"
             android:textSize="14sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/black"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp" />
+    </LinearLayout>
+
+
         <Button
             android:id="@+id/got_it"
             android:layout_width="match_parent"
