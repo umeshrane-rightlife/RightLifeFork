@@ -65,7 +65,7 @@
         <TextView
             android:id="@+id/tv_checkprogress_days"
             android:layout_width="wrap_content"
-            android:text="Re - take Assessment"
+            android:text="Start Assessment"
             android:paddingHorizontal="5dp"
             android:layout_alignParentEnd="true"
             android:background="@drawable/roundedcornerpinkborder"

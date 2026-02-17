@@ -2,6 +2,7 @@ package com.jetsynthesys.rightlife.ui.mindaudit
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
@@ -10,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.jetsynthesys.rightlife.databinding.RowHelplineBinding
-import com.jetsynthesys.rightlife.ui.new_design.WellnessFocusListActivity
 
 class HelpLineAdapter(
     private val context: Context,
@@ -18,7 +18,7 @@ class HelpLineAdapter(
     private val isForState: Boolean = false
 ) : RecyclerView.Adapter<HelpLineAdapter.CountryViewHolder>() {
 
-    inner class CountryViewHolder(val binding: RowHelplineBinding) :
+    class CountryViewHolder(val binding: RowHelplineBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CountryViewHolder {
@@ -33,7 +33,8 @@ class HelpLineAdapter(
             tvTiming.text = item.hours
             tvOrganizationName.text = item.name
             if (!item.website.isNullOrEmpty())
-                tvOrganizationName.paintFlags = tvOrganizationName.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+                tvOrganizationName.paintFlags =
+                    tvOrganizationName.paintFlags or Paint.UNDERLINE_TEXT_FLAG
             tvOrganizationName.setOnClickListener {
                 item.website?.let {
                     context.startActivity(
@@ -57,9 +58,15 @@ class HelpLineAdapter(
             }
 
             if (isForState) {
-                rlHelpLine.setBackgroundColor(Color.parseColor(if (position % 2 == 0) "#FFA8A5" else "#FEB4B2"))
-            }
+                val colorHex = if (position % 2 == 0) "#FFA8A5" else "#FEB4B2"
+                val color = Color.parseColor(colorHex)
 
+// Use backgroundTintList to preserve your drawable shape/corners
+                rlHelpLine.backgroundTintList = ColorStateList.valueOf(color)
+            } else {
+                val color = Color.parseColor("#FDD3D2")
+                rlHelpLine.backgroundTintList = ColorStateList.valueOf(color)
+            }
             rlPhoneNumber1.setOnClickListener {
                 if (tvPhoneNumber1.text.isNullOrEmpty()) return@setOnClickListener
                 val intent = Intent(Intent.ACTION_DIAL).apply {
