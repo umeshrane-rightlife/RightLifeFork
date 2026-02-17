@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.ai_package.model.ModuleData
 
@@ -28,42 +29,49 @@ class ToolAdapter(context: Context, private val tools: List<ModuleData>, val onT
                 Glide.with(mContext)
                     .load("https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/dccba8e93b41dc3f856d7c18b13d5783.png")
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Your Affirmation Playlist" ->{
                 Glide.with(mContext)
                     .load(R.drawable.quote_icon)
                     .placeholder(R.drawable.quote_icon)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Box Breathing" ->{
                 Glide.with(mContext)
                     .load("https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/62e1e78cca28251bf83e46bc0018ba0b.png")
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Alternate Nostril Breathing" ->{
                 Glide.with(mContext)
                     .load( "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/4a37e4954896bd3a53d90424be77a724.png")
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Equal Breathing" ->{
                 Glide.with(mContext)
                     .load( "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/4a37e4954896bd3a53d90424be77a724.png")
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "4-7-8 Breathing" ->{
                 Glide.with(mContext)
-                    .load(  "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/c88072eb32c47a1e385fae66696dc293.png")
+                    .load(  "https://jetsynthesisqa-us-east-1.s3.amazonaws.com/media/cms/content/module/2b139eff89006fce84e09bc63a1642be.png")
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Free Form" -> {
                 Glide.with(mContext)
-                    .load(  R.drawable.ic_freeform_journal)
+                    .load(  R.drawable.free_form_image)
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
 
@@ -71,26 +79,30 @@ class ToolAdapter(context: Context, private val tools: List<ModuleData>, val onT
                 Glide.with(mContext)
                     .load(  R.drawable.ic_bullet_journal)
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
 
             "Gratitude" -> {
                 Glide.with(mContext)
-                    .load(  R.drawable.ic_gratitude_journal)
+                    .load(  R.drawable.gratitude_image)
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
 
             "Grief" -> {
                 Glide.with(mContext)
-                    .load(  R.drawable.ic_grief_journal)
+                    .load(  R.drawable.grief_image)
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
             "Custom" -> {
                 Glide.with(mContext)
                     .load(  R.drawable.custom_image)
                     .placeholder(R.drawable.ic_plus)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.itemView.findViewById<ImageView>(R.id.iv_selected))
             }
         }

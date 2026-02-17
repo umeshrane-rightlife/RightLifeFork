@@ -23,7 +23,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Module Name"
-            android:maxLines="2"
+            android:maxLines="3"
             android:ellipsize="end"
             android:scrollbars="none"
             android:textAlignment="center"
