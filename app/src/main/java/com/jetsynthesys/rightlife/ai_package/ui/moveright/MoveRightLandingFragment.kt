@@ -415,6 +415,7 @@ class MoveRightLandingFragment : BaseFragment<FragmentLandingBinding>() {
                 commit()
             }
         }
+
         caloricInfo.setOnClickListener {
             val yourCaloricSummaryInfoBottomSheet = YourCaloricSummaryInfoBottomSheet()
             yourCaloricSummaryInfoBottomSheet.isCancelable = true
