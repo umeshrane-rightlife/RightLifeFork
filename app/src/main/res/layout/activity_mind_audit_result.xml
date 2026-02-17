@@ -900,7 +900,8 @@
                             android:layout_width="match_parent"
                             android:text="Moderate Anxiety"
                             android:fontFamily="@font/dmsans_bold"
-                            android:textSize="@dimen/textsize_large"
+                            android:textSize="20sp"
+                            android:textColor="#262338"
                             android:layout_height="wrap_content" />
 
                         <TextView

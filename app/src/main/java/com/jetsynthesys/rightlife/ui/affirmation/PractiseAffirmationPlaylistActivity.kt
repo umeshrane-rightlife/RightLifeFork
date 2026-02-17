@@ -415,8 +415,9 @@ class PractiseAffirmationPlaylistActivity : BaseActivity() {
             }
 
             reminderBottomSheetDialog.dismiss()
-            setupReminderSetBottomSheet()
-            reminderSetBottomSheetDialog.show()
+            //setupReminderSetBottomSheet()
+            showCustomToast("Reminders saved successfully",true)
+            //reminderSetBottomSheetDialog.show()
         }
     }
 

@@ -2,7 +2,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     android:background="@color/settings_bg_color">
 
     <!-- Back Arrow and Title -->
@@ -12,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingBottom="16dp">
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/icon_back"
@@ -36,7 +35,6 @@
             android:orientation="vertical"
             android:layout_below="@id/llTopBar"
             android:layout_above="@id/btnImFine"
-            android:paddingHorizontal="5dp"
             android:layout_marginVertical="8dp">
 
             <TextView
@@ -156,20 +154,18 @@
                 android:backgroundTint="@color/helpline_card_bg_light"
                 android:background="@drawable/roundedcornerbottomshape" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Remember, there's always someone\nready to listen and support you.\nYour well-being matters."
+                    android:gravity="center_horizontal"
+                    android:textSize="14sp"
+                    android:layout_margin="12dp"
+                    android:fontFamily="@font/dmsans_regular"
+                    android:textColor="@color/txt_color_mind" />
+
             </LinearLayout>
             </ScrollView>
-
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Remember, there's always someone\nready to listen and support you.\nYour well-being matters."
-                android:gravity="center_horizontal"
-                android:textSize="14sp"
-                android:layout_margin="12dp"
-                android:fontFamily="@font/dmsans_regular"
-                android:textColor="@color/txt_color_mind" />
-
         </LinearLayout>
 
     <Button

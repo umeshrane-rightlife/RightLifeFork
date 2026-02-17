@@ -396,7 +396,6 @@ class BreathworkPracticeActivity : BaseActivity() {
         callPostMindFullDataAPI()
         binding.rlPracticeComplete.visibility = View.VISIBLE
         binding.setIndicator.visibility = View.GONE
-        binding.sessionTimer.visibility = View.GONE
         binding.rlBreathingPracticeMain.visibility = View.GONE
         binding.btnExit.setOnClickListener {
             showCompletedBottomSheet()
