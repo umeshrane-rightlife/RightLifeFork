@@ -64,7 +64,7 @@ public class MindAuditQuestionListFragment extends Fragment {
 
         txt_question.setText(question.getQuestion());
         if (question.getQuestion() == null || question.getQuestion().isEmpty())
-            txt_question.setVisibility(View.INVISIBLE);
+            txt_question.setVisibility(View.GONE);
         else
             txt_question.setVisibility(View.VISIBLE);
         ((MAAssessmentQuestionaireActivity) requireActivity()).nextButton.setVisibility(View.GONE);
