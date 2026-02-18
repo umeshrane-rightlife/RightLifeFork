@@ -34,14 +34,8 @@ class AffirmationCategoryListAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = categoryList[position]
         holder.tvCategoryRow.text = category.title
-        /*GlideApp.with(context)
-            .load(ApiClient.CDN_URL_QA + category.image)
-            .placeholder(R.drawable.rl_placeholder)
-            .error(R.drawable.rl_placeholder)
-            .into(holder.imageCategoryRow)*/
 
-        Glide.with(context)
-            .`as`(PictureDrawable::class.java)
+        GlideApp.with(context)
             .load(ApiClient.CDN_URL_QA + category.image)
             .placeholder(R.drawable.rl_placeholder)
             .error(R.drawable.rl_placeholder)

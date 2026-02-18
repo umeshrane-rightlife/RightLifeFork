@@ -143,8 +143,9 @@
                 android:gravity="center_vertical"
                 android:background="#F7E6B7"
                 android:fontFamily="@font/dmsans_semibold"
-                android:textSize="@dimen/textsize_large"
+                android:textSize="20sp"
                 android:paddingStart="@dimen/margin_card_16dp"
+                android:textColor="#14142A"
                 android:layout_height="50dp" />
 
             <RelativeLayout
@@ -631,7 +632,8 @@
                         app:cardCornerRadius="@dimen/margin_card_16dp"
                         android:elevation="5dp"
                         android:id="@+id/cardview_mainscore_happiness"
-                        app:cardBackgroundColor="#4EC6DE">
+                        app:cardBackgroundColor="#4EC6DE"
+                        android:visibility="gone">
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -639,6 +641,7 @@
                             android:layout_marginTop="@dimen/margin_card_16dp"
                             android:gravity="center_vertical">
                             <ImageView
+                                android:id="@+id/imageExpandCollapse"
                                 android:layout_width="50dp"
                                 android:src="@drawable/icon_arrow_article"
                                 android:layout_alignParentEnd="true"
@@ -714,15 +717,18 @@
 
                     </androidx.cardview.widget.CardView>
 
+                    <include android:id="@+id/llDass21"
+                        layout="@layout/layout_dass21"/>
+
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="80dp"
-
                         android:layout_marginVertical="12dp"
                         app:cardCornerRadius="@dimen/margin_card_16dp"
                         android:elevation="5dp"
                         android:id="@+id/cardview_mainscore"
-                        app:cardBackgroundColor="#4EC6DE">
+                        app:cardBackgroundColor="#4EC6DE"
+                        android:visibility="gone">
 
                         <RelativeLayout
                             android:layout_width="match_parent"

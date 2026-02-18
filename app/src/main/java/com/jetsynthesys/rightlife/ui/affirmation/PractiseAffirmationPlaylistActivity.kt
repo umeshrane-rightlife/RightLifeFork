@@ -158,25 +158,36 @@ class PractiseAffirmationPlaylistActivity : BaseActivity() {
     }
 
     private fun saveLinearLayoutToGallery(view: View): String? {
-        // Create a bitmap with the same dimensions as the LinearLayout
-        val bitmap =
-            Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
 
-        // Create a Canvas object to draw on the bitmap
+        // 🔹 Find the TextView you want to hide
+        val textView = view.findViewById<TextView>(R.id.pageCount)
+
+        // Store original visibility
+        val originalVisibility = textView?.visibility
+
+        // Hide it temporarily
+        textView?.visibility = View.GONE
+
+        // Create bitmap
+        val bitmap = Bitmap.createBitmap(
+            view.width,
+            view.height,
+            Bitmap.Config.ARGB_8888
+        )
+
         val canvas = Canvas(bitmap)
-
-        // Draw the LinearLayout onto the canvas
         view.draw(canvas)
 
-        // Check if the device is running Android Q (API level 29) or higher
+        // Restore visibility
+        textView?.visibility = originalVisibility ?: View.VISIBLE
+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Use MediaStore to save the image to the gallery
             saveImageToMediaStore(bitmap, this)
         } else {
-            // Fallback for older Android versions, using traditional file saving method
             saveImageToOldStorage(bitmap, this)
         }
     }
+
 
     // Save the bitmap using MediaStore (for Android 10 and above)
     private fun saveImageToMediaStore(bitmap: Bitmap, context: Context): String? {

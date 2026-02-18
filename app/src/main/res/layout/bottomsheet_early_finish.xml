@@ -33,6 +33,7 @@
         android:layout_margin="20dp"
         android:fontFamily="@font/dmsans_regular"
         android:layout_gravity="center"
+        android:gravity="center"
         android:text="Are you sure you want to delete? This cannot be undone."
         android:textColor="@color/txt_color_header"
         android:textSize="14sp" />

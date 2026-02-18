@@ -316,54 +316,6 @@ class TodaysAffirmationActivity : BaseActivity() {
                 ?.start()
         }
     }
-    /*    private fun onSwipeUp() {
-            if (selectedCategoryPosition < categoryList.size - 1) {
-                val currentPage = binding.cardViewPager.getChildAt(0) // current visible page view
-
-                currentPage?.animate()
-                    ?.translationYBy(-(currentPage.height.toFloat() + 100))
-                    ?.setDuration(300)
-                    ?.withEndAction {
-                        selectedCategoryPosition += 1
-                        getSelectedCategoryData(categoryList[selectedCategoryPosition].id)
-                        binding.tvCategory.text = categoryList[selectedCategoryPosition].title
-
-                        // Reset below screen
-                        currentPage.translationY = currentPage.height.toFloat() + 100
-
-                        currentPage.animate()
-                            .translationY(0f)
-                            .setDuration(300)
-                            .start()
-                    }
-                    ?.start()
-            }
-        }
-
-        private fun onSwipeDown() {
-            if (selectedCategoryPosition > 0) {
-                val currentPage = binding.cardViewPager.getChildAt(0) // current visible page view
-
-                currentPage?.animate()
-                    ?.translationYBy(currentPage.height.toFloat() + 100)
-                    ?.setDuration(300)
-                    ?.withEndAction {
-                        selectedCategoryPosition -= 1
-                        getSelectedCategoryData(categoryList[selectedCategoryPosition].id)
-                        binding.tvCategory.text = categoryList[selectedCategoryPosition].title
-
-                        // Reset above screen
-                        currentPage.translationY = -(currentPage.height.toFloat() + 100)
-
-                        currentPage.animate()
-                            .translationY(0f)
-                            .setDuration(300)
-                            .start()
-                    }
-                    ?.start()
-            }
-        }*/
-
 
     private fun addCardToPlaylist() {
         val yOff = -200
@@ -400,10 +352,10 @@ class TodaysAffirmationActivity : BaseActivity() {
                         "One more and your playlist is ready to go.",
                         Toast.LENGTH_SHORT
                     ).show()*/
-                    showBalloon(
+                    /*showBalloon(
                         binding.addAffirmation,
                         "One more and your playlist is ready to go.", xOff = xOff, yOff = yOff
-                    )
+                    )*/
 
                     showCustomToast("One more and your playlist is ready to go.", true)
                 }

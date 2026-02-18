@@ -15,13 +15,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
 import com.jetsynthesys.rightlife.R;
 import com.jetsynthesys.rightlife.RetrofitData.ApiClient;
 import com.jetsynthesys.rightlife.RetrofitData.ApiService;
 import com.jetsynthesys.rightlife.ui.utility.SharedPreferenceConstants;
 import com.jetsynthesys.rightlife.ui.utility.SharedPreferenceManager;
 import com.jetsynthesys.rightlife.ui.utility.Utils;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,8 +39,8 @@ public class MindAuditFeelingsFragment extends Fragment {
     private GetEmotions getEmotions;
     private RecyclerView recyclerView;
     private EmotionsAdapter emotionsAdapter;
-    private ArrayList<Emotions> emotionsList = new ArrayList<>();
-    private ArrayList<String> selectedEmotions = new ArrayList<>();
+    private final ArrayList<Emotions> emotionsList = new ArrayList<>();
+    private final ArrayList<String> selectedEmotions = new ArrayList<>();
 
 
     public static MindAuditFeelingsFragment newInstance(int pageIndex) {
@@ -79,7 +79,7 @@ public class MindAuditFeelingsFragment extends Fragment {
                 mindAuditAssessmentSaveRequest.setEmotionalState(selectedEmotions);
                 SharedPreferenceManager.getInstance(requireContext()).saveMindAuditRequest(mindAuditAssessmentSaveRequest);
             } else {
-                Utils.showCustomTopToast(requireContext(),"Please select at least one reason for your emotion before proceeding.");
+                Utils.showCustomTopToast(requireContext(), "Please select at least one reason for your emotion before proceeding.");
                 //Toast.makeText(requireContext(), "Please select at least one reason for your emotion before proceeding.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -104,23 +104,34 @@ public class MindAuditFeelingsFragment extends Fragment {
 
                         Gson gson = new Gson();
                         getEmotions = gson.fromJson(jsonString, GetEmotions.class);
+                        if (getEmotions.getSelectedBasicEmotions().isEmpty()) {
 
-                        for (String s : getEmotions.getEmotions()) {
-                            emotionsList.add(new Emotions(Utils.toTitleCase(s), false));
-                        }
-
-                        emotionsAdapter = new EmotionsAdapter(requireContext(), emotionsList,"1", emotion -> {
-                            String emotionKey = emotion.getEmotion().toUpperCase();
-                            if (emotion.isSelected()) {
-                                if (!selectedEmotions.contains(emotionKey)) {
-                                    selectedEmotions.add(emotionKey);
-                                }
-                            } else {
-                                selectedEmotions.remove(emotionKey);
+                            for (String s : getEmotions.getEmotions()) {
+                                emotionsList.add(new Emotions(Utils.toTitleCase(s), false));
                             }
-                        });
 
-                        recyclerView.setAdapter(emotionsAdapter);
+                            emotionsAdapter = new EmotionsAdapter(requireContext(), emotionsList, "1", emotion -> {
+                                String emotionKey = emotion.getEmotion().toUpperCase();
+                                if (emotion.isSelected()) {
+                                    if (!selectedEmotions.contains(emotionKey)) {
+                                        selectedEmotions.add(emotionKey);
+                                    }
+                                } else {
+                                    selectedEmotions.remove(emotionKey);
+                                }
+                            });
+
+                            recyclerView.setAdapter(emotionsAdapter);
+                        } else {
+                            selectedEmotions.addAll(getEmotions.getSelectedBasicEmotions());
+                            MindAuditAssessmentSaveRequest mindAuditAssessmentSaveRequest = SharedPreferenceManager.getInstance(requireContext()).getMindAuditRequest();
+                            mindAuditAssessmentSaveRequest.setEmotionalState(selectedEmotions);
+                            SharedPreferenceManager.getInstance(requireContext()).saveMindAuditRequest(mindAuditAssessmentSaveRequest);
+                            Intent intent = new Intent(requireActivity(), MASuggestedAssessmentActivity.class);
+                            intent.putExtra("FROM_THINK_RIGHT", ((MindAuditFromActivity) requireActivity()).isFromThinkRight);
+                            startActivity(intent);
+                            requireActivity().finish();
+                        }
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -155,7 +166,7 @@ public class MindAuditFeelingsFragment extends Fragment {
                         BasicScreeningQuestion basicScreeningQuestion = gson.fromJson(jsonString, BasicScreeningQuestion.class);
                         Intent intent = new Intent(requireActivity(), MindAuditBasicScreeningQuestionsActivity.class);
                         intent.putExtra(ARG_BASIC_QUESTION, basicScreeningQuestion);
-                        intent.putExtra("FROM_THINK_RIGHT",((MindAuditFromActivity) requireActivity()).isFromThinkRight);
+                        intent.putExtra("FROM_THINK_RIGHT", ((MindAuditFromActivity) requireActivity()).isFromThinkRight);
                         startActivity(intent);
                     } catch (IOException e) {
                         throw new RuntimeException(e);

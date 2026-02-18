@@ -9,20 +9,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.jetsynthesys.rightlife.BaseActivity
 import com.jetsynthesys.rightlife.R
 import com.jetsynthesys.rightlife.databinding.ActivityMindAuditDass21ResultBinding
+import com.jetsynthesys.rightlife.ui.AppLoader
 import com.jetsynthesys.rightlife.ui.YouMayAlsoLikeMindAuditAdapter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class MindAuditDass21DetailResultActivity : BaseActivity() {
-    private val allAssessments = java.util.ArrayList<String>()
-    private val suggestedAssessments = java.util.ArrayList<String>()
-    private var userEmotionsString: ArrayList<String> = ArrayList()
+
     private lateinit var binding: ActivityMindAuditDass21ResultBinding
-    private var suggestedAssessmentAdapter: OtherAssessmentsAdapter? = null
-    private var suggestedAssessmentString = java.util.ArrayList<String>()
     private var selectedAssessment = "DASS-21"
-    private var emotionsAdapter: EmotionsAdapter? = null
     private var reportId: String? = null
     private var isFrom: String? = null
     private var isFromThinkRight = false
@@ -38,16 +34,9 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         isFromThinkRight = intent.getBooleanExtra("FROM_THINK_RIGHT", false)
 
         val assessmentHeader = intent.getStringExtra("Assessment") ?: "CAS"
-        binding.tvAssessmentTaken.text = assessmentHeader + " " + "Score"
+        binding.tvAssessmentTaken.text = "$assessmentHeader Score"
         selectedAssessment = assessmentHeader
 
-
-        /*if (reportId != null) {
-            getAssessmentResultWithId(assessmentHeader, reportId!!)
-        } else
-        {
-            getAssessmentResult(assessmentHeader)
-        }*/
         getAssessmentResult(assessmentHeader)
         binding.iconBack.setOnClickListener {
             onBackPressHandle()
@@ -59,19 +48,19 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         })
 
 
-        binding.tvAssessmentTaken.text = assessmentHeader + " " + "Score"
+        binding.tvAssessmentTaken.text = "$assessmentHeader Score"
         selectedAssessment = assessmentHeader
 
     }
 
 
     private fun onBackPressHandle() {
-        finish() }
-
-
+        finish()
+    }
 
 
     private fun getAssessmentResult(assessment: String) {
+        AppLoader.show(this)
         val call =
             apiService.getMindAuditAssessmentResult(sharedPreferenceManager.accessToken, assessment)
         call.enqueue(object : Callback<MindAuditResultResponse?> {
@@ -79,22 +68,9 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
                 call: Call<MindAuditResultResponse?>,
                 response: Response<MindAuditResultResponse?>
             ) {
+                AppLoader.hide(this@MindAuditDass21DetailResultActivity)
                 if (response.isSuccessful && response.body() != null) {
-                    /*      try {
-                              if (response.body()!!.result.isNullOrEmpty()){
-
-                                  binding.rlAssessmentNotTaken.visibility = View.GONE
-                                  binding.scrollviewResult.visibility = View.VISIBLE
-                              // binding.tvMainScore.text = response.body()!!.result[0].assessmentsTaken[0].interpretations.anger.level.toString() + " " + response.body()!!.result[0].assessmentsTaken[0].interpretations.anger.score.toString()
-                                  handleAssessmentScore(response)
-                              }else{
-                                  binding.rlAssessmentNotTaken.visibility = View.VISIBLE
-                                  binding.scrollviewResult.visibility = View.GONE
-                              }
-                          } catch (e: Exception) {
-                              e.printStackTrace()
-                          }*/
-
+                    binding.rlMainLayout.visibility = View.VISIBLE
                     try {
                         val resultList = response.body()?.result
 
@@ -116,66 +92,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             }
 
             override fun onFailure(call: Call<MindAuditResultResponse?>, t: Throwable) {
-                handleNoInternetView(t)
-            }
-        })
-    }
-
-    private fun getAssessmentResultWithId(assessment: String, reportId: String) {
-        val call =
-            apiService.getMindAuditAssessmentResultWithId(
-                sharedPreferenceManager.accessToken,
-                assessment,
-                reportId
-            )
-        call.enqueue(object : Callback<MindAuditResultResponse?> {
-            override fun onResponse(
-                call: Call<MindAuditResultResponse?>,
-                response: Response<MindAuditResultResponse?>
-            ) {
-                if (response.isSuccessful && response.body() != null) {
-                    /*      try {
-                              if (response.body()!!.result.isNullOrEmpty()){
-
-                                  binding.rlAssessmentNotTaken.visibility = View.GONE
-                                  binding.scrollviewResult.visibility = View.VISIBLE
-                              // binding.tvMainScore.text = response.body()!!.result[0].assessmentsTaken[0].interpretations.anger.level.toString() + " " + response.body()!!.result[0].assessmentsTaken[0].interpretations.anger.score.toString()
-                                  handleAssessmentScore(response)
-                              }else{
-                                  binding.rlAssessmentNotTaken.visibility = View.VISIBLE
-                                  binding.scrollviewResult.visibility = View.GONE
-                              }
-                          } catch (e: Exception) {
-                              e.printStackTrace()
-                          }*/
-
-                    try {
-                        val resultList = response.body()?.result
-
-                        if (!resultList.isNullOrEmpty()) {
-                            // Result exists, show result layout
-                            binding.scrollviewResult.visibility = View.VISIBLE
-                            handleAssessmentScore(response)
-                        } else {
-                            // No result, show "not taken" layout
-                            binding.rlMoreLikeSection.visibility = View.GONE
-                            binding.recyclerParent.visibility = View.GONE
-
-                            binding.scrollviewResult.visibility = View.GONE
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                } else {
-                    Toast.makeText(
-                        this@MindAuditDass21DetailResultActivity,
-                        "Server Error: " + response.code(),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-
-            override fun onFailure(call: Call<MindAuditResultResponse?>, t: Throwable) {
+                AppLoader.hide(this@MindAuditDass21DetailResultActivity)
                 handleNoInternetView(t)
             }
         })
@@ -189,7 +106,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         sharedPreferenceManager.saveUserEmotions(UserEmotions(response.body()!!.result[0].emotionalState))
 
         // Get which interpretation to show (passed from previous activity)
-         showType = intent.getStringExtra("SHOW_INTERPRETATION")?.lowercase() ?: ""
+        showType = intent.getStringExtra("SHOW_INTERPRETATION")?.lowercase() ?: ""
 
         with(binding) {
             when (assessmentTaken.assessment) {
@@ -197,41 +114,57 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
                     when (showType.lowercase()) {
                         "anxiety" -> {
                             assessmentTaken.interpretations.anxiety?.let {
-                                showAnxiety(it, assessmentTaken)
+                                showAnxiety(it)
                                 binding.titleToolbar.text = "Anxiety"
                             }
+                            binding.tvMinimal.text = "Minimal"
                         }
+
                         "depression" -> {
                             assessmentTaken.interpretations.depression?.let {
                                 showDepression(it, assessmentTaken)
                                 binding.titleToolbar.text = "Depression"
                             }
+                            binding.tvMinimal.text = "Minimal"
                         }
+
                         "stress" -> {
                             assessmentTaken.interpretations.stress?.let {
                                 showStress(it, assessmentTaken)
                                 binding.titleToolbar.text = "Stress"
                             }
+                            binding.tvMinimal.text = "Normal"
                         }
+
                         else -> {
                             // fallback: show all if no filter passed
-                            assessmentTaken.interpretations.anxiety?.let { showAnxiety(it, assessmentTaken) }
-                            assessmentTaken.interpretations.depression?.let { showDepression(it, assessmentTaken) }
-                            assessmentTaken.interpretations.stress?.let { showStress(it, assessmentTaken) }
+                            assessmentTaken.interpretations.anxiety?.let {
+                                showAnxiety(it)
+                            }
+                            assessmentTaken.interpretations.depression?.let {
+                                showDepression(
+                                    it,
+                                    assessmentTaken
+                                )
+                            }
+                            assessmentTaken.interpretations.stress?.let {
+                                showStress(
+                                    it,
+                                    assessmentTaken
+                                )
+                            }
                         }
                     }
 
                     scoreBarContainer.visibility = View.VISIBLE
                     scoreBarcard.visibility = View.VISIBLE
-                    scoreBarcardGad7.visibility = View.GONE
                 }
             }
         }
     }
 
 
-
-    private fun showAnxiety(anxiety: Anxiety, assessmentTaken: AssessmentsTaken) {
+    private fun showAnxiety(anxiety: Anxiety) {
         binding.cardviewMainscore.visibility = View.VISIBLE
         binding.mainScoreTitle.text = "Anxiety"
         binding.mainScoreLevel.text = anxiety.level
@@ -245,7 +178,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         setRainbowView(anxiety.score.toInt(), showType)
 
         val explanation = getDASS21AnxietyExplanation(anxiety.score.toFloat())
-        binding.tvResultExplanationTitle.text = explanation.first
+        binding.tvResultExplanationTitle.text = explanation.first +" Anxiety"
         binding.tvResultExplanation.text = explanation.second
 
         // ranges
@@ -262,9 +195,9 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         }
 
         binding.cardviewMainscore.setOnClickListener {
-            setRainbowView(anxiety.score.toInt(),showType)
+            setRainbowView(anxiety.score.toInt(), showType)
             val explanationClick = getDASS21AnxietyExplanation(anxiety.score.toFloat())
-            binding.tvResultExplanationTitle.text = explanationClick.first
+            binding.tvResultExplanationTitle.text = explanationClick.first + " Anxiety"
             binding.tvResultExplanation.text = explanationClick.second
         }
         binding.cardviewMainscore2.visibility = View.GONE
@@ -286,7 +219,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         setExplanationTitle(depression.level, "Depression")
 
         val explanation = getDASS21DepressionExplanation(depression.score.toFloat())
-        binding.tvResultExplanationTitle.text = explanation.first
+        binding.tvResultExplanationTitle.text = explanation.first + " Depression"
         binding.tvResultExplanation.text = explanation.second
 
         // ranges
@@ -298,15 +231,15 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             tvRange5.text = "28+"
             tvRange6.text = ""
         }
-        setRainbowView(depression.score.toInt(),showType)
+        setRainbowView(depression.score.toInt(), showType)
         val explanationClick = getDASS21DepressionExplanation(depression.score.toFloat())
-        binding.tvResultExplanationTitle.text = explanationClick.first
+        binding.tvResultExplanationTitle.text = explanationClick.first + " Depression"
         binding.tvResultExplanation.text = explanationClick.second
 
         binding.cardviewMainscore2.setOnClickListener {
-            setRainbowView(depression.score.toInt(),showType)
+            setRainbowView(depression.score.toInt(), showType)
             val explanationClick = getDASS21DepressionExplanation(depression.score.toFloat())
-            binding.tvResultExplanationTitle.text = explanationClick.first
+            binding.tvResultExplanationTitle.text = explanationClick.first + " Depression"
             binding.tvResultExplanation.text = explanationClick.second
         }
     }
@@ -326,7 +259,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
         setExplanationTitle(stress.level, "Stress")
 
         val explanation = getDASS21StressExplanation(stress.score.toFloat())
-        binding.tvResultExplanationTitle.text = explanation.first
+        binding.tvResultExplanationTitle.text = explanation.first + " Stress"
         binding.tvResultExplanation.text = explanation.second
 
         // ranges
@@ -341,222 +274,29 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             tvExtSevere.visibility = View.VISIBLE
             tvRange5.gravity = Gravity.START
         }
-        setRainbowView(stress.score.toInt(),showType)
+        setRainbowView(stress.score.toInt(), showType)
         val explanationClick = getDASS21StressExplanation(stress.score.toFloat())
-        binding.tvResultExplanationTitle.text = explanationClick.first
+        binding.tvResultExplanationTitle.text = explanationClick.first +" Stress"
         binding.tvResultExplanation.text = explanationClick.second
 
         binding.cardviewMainscore3.setOnClickListener {
-            setRainbowView(stress.score.toInt(),showType)
+            setRainbowView(stress.score.toInt(), showType)
             val explanationClick = getDASS21StressExplanation(stress.score.toFloat())
-            binding.tvResultExplanationTitle.text = explanationClick.first
+            binding.tvResultExplanationTitle.text = explanationClick.first + " Stress"
             binding.tvResultExplanation.text = explanationClick.second
         }
     }
 
-    /*private fun handleAssessmentScore(response: Response<MindAuditResultResponse?>) {
-        binding.cardviewMainscore.setOnClickListener(null)
-        response.body()?.recommendations?.let { setupListData(it) }
-        val assessmentTaken = response.body()!!.result[0].assessmentsTaken[0]
-        sharedPreferenceManager.saveUserEmotions(UserEmotions(response.body()!!.result[0].emotionalState))
-        with(binding) {
-            when (assessmentTaken.assessment) {
-                "DASS-21" -> {
-                    cardviewMainscore.visibility = View.VISIBLE
-                    assessmentTaken.interpretations.anxiety?.let {
-                        cardviewMainscore.visibility = View.VISIBLE
-                        binding.mainScoreTitle.text = "Anxiety"
-                        binding.mainScoreTitle.visibility = View.VISIBLE
-                        binding.mainScoreLevel.text = assessmentTaken.interpretations.anxiety.level
-                        binding.mainScoreLevel.visibility = View.VISIBLE
-                        binding.tvMainScore.text =
-                            assessmentTaken.interpretations.anxiety.score.toString()
-                        binding.cardviewMainscore.setCardBackgroundColor(
-                            resources.getColor(getColorResForScore(assessmentTaken.interpretations.anxiety.level))
-                        )
-                        //getColorResForScore(assessmentTaken.interpretations.anxiety.score)
-                        //getColorResForScore(assessmentTaken.interpretations.anxiety.level)
-                        setExplanationTitle(
-                            assessmentTaken.interpretations.anxiety.level,
-                            "Anxiety"
-                        )
-                        setRainbowView(assessmentTaken.interpretations.anxiety.score.toInt())
-                        //setLeftRainbowView(assessmentTaken.interpretations.anxiety.score.toInt())
 
-                        val explanation = getDASS21AnxietyExplanation(
-                            assessmentTaken.interpretations.anxiety.score.toFloat()
-                        )
-                        binding.tvResultExplanationTitle.text = explanation.first
-                        binding.tvResultExplanation.text = explanation.second
-                        cardviewMainscore.setOnClickListener {
-                            if (assessmentTaken.assessment.equals("DASS-21")) {
-                                setRainbowView(assessmentTaken.interpretations.anxiety.score.toInt())
-                                val explanation = getDASS21AnxietyExplanation(
-                                    assessmentTaken.interpretations.anxiety.score.toFloat()
-                                )
-                                binding.cardviewMainscore.setCardBackgroundColor(
-                                    resources.getColor(getColorResForScore(assessmentTaken.interpretations.anxiety.level))
-                                )
-                                binding.tvResultExplanationTitle.text = explanation.first
-                                binding.tvResultExplanation.text = explanation.second
-                                binding.apply {
-                                    tvRange1.text = "0"
-                                    tvRange2.text = "7"
-                                    tvRange3.text = "9"
-                                    tvRange4.text = "14"
-                                    tvRange5.text = "20+"
-                                    tvRange6.text = ""
-                                    tvRange5.visibility = View.VISIBLE
-                                    tvExtSevere.visibility = View.VISIBLE
-                                    tvRange5.gravity = Gravity.START
-                                }
-                            }
-                        }
-                        binding.apply {
-                            tvRange1.text = "0"
-                            tvRange2.text = "7"
-                            tvRange3.text = "9"
-                            tvRange4.text = "14"
-                            tvRange5.text = "20+"
-                            tvRange6.text = ""
-                            tvRange5.visibility = View.VISIBLE
-                            tvExtSevere.visibility = View.VISIBLE
-                            tvRange5.gravity = Gravity.START
-                        }
-                    }
-                    assessmentTaken.interpretations.depression?.let {
-                        cardviewMainscore2.visibility = View.VISIBLE
-                        binding.mainScoreTitle2.text = "Depression"
-                        binding.mainScoreTitle2.visibility = View.VISIBLE
-                        binding.mainScoreLevel2.text =
-                            assessmentTaken.interpretations.depression.level
-                        binding.mainScoreLevel2.visibility = View.VISIBLE
-                        binding.tvMainScore2.text =
-                            assessmentTaken.interpretations.depression.score.toString()
-                        setExplanationTitle(
-                            assessmentTaken.interpretations.depression.level,
-                            "Depression"
-                        )
-                        binding.cardviewMainscore2.setCardBackgroundColor(
-                            resources.getColor(getColorResForScore(assessmentTaken.interpretations.depression.level))
-                        )
-                        //setCenterRainbowView(assessmentTaken.interpretations.depression.score.toInt())
-                        val explanation = getDASS21DepressionExplanation(
-                            assessmentTaken.interpretations.depression.score.toFloat()
-                        )
-                        binding.tvResultExplanationTitle.text = explanation.first
-                        binding.tvResultExplanation.text = explanation.second
-                        cardviewMainscore2.setOnClickListener {
-                            setCenterRainbowView(assessmentTaken.interpretations.depression.score.toInt())
-                            setRainbowView(assessmentTaken.interpretations.depression.score.toInt())
-                            val explanation = getDASS21DepressionExplanation(
-                                assessmentTaken.interpretations.depression.score.toFloat()
-                            )
-                            binding.cardviewMainscore2.setCardBackgroundColor(
-                                resources.getColor(getColorResForScore(assessmentTaken.interpretations.depression.level))
-                            )
-                            binding.tvResultExplanationTitle.text = explanation.first
-                            binding.tvResultExplanation.text = explanation.second
-                            binding.apply {
-                                tvRange1.text = "0"
-                                tvRange2.text = "9"
-                                tvRange3.text = "13"
-                                tvRange4.text = "20"
-                                tvRange5.text = "28+"
-                                tvRange6.text = ""
-                                tvRange5.visibility = View.VISIBLE
-                                tvExtSevere.visibility = View.VISIBLE
-                                tvRange5.gravity = Gravity.START
-                            }
-                        }
-                        binding.apply {
-                            tvRange1.text = "0"
-                            tvRange2.text = "9"
-                            tvRange3.text = "13"
-                            tvRange4.text = "20"
-                            tvRange5.text = "28+"
-                            tvRange6.text = ""
-                        }
-                    }
-                    assessmentTaken.interpretations.stress?.let {
-                        cardviewMainscore3.visibility = View.VISIBLE
-                        binding.mainScoreTitle3.text = "Stress"
-                        binding.mainScoreTitle3.visibility = View.VISIBLE
-                        binding.mainScoreLevel3.text = assessmentTaken.interpretations.stress.level
-                        binding.mainScoreLevel3.visibility = View.VISIBLE
-                        binding.tvMainScore3.text =
-                            assessmentTaken.interpretations.stress.score.toString()
-                        cardviewMainscore3.setCardBackgroundColor(
-                            resources.getColor(getColorResForScore(assessmentTaken.interpretations.stress.level))
-                        )
-                        setExplanationTitle(assessmentTaken.interpretations.stress.level, "Stress")
-                        //setRightRainbowView(assessmentTaken.interpretations.stress.score.toInt())
-
-                        val explanation = getDASS21StressExplanation(
-                            assessmentTaken.interpretations.stress.score.toFloat()
-                        )
-                        binding.tvResultExplanationTitle.text = explanation.first
-                        binding.tvResultExplanation.text = explanation.second
-                        cardviewMainscore3.setOnClickListener {
-                            setRightRainbowView(assessmentTaken.interpretations.stress.score.toInt())
-                            setRainbowView(assessmentTaken.interpretations.stress.score.toInt())
-                            val explanation = getDASS21StressExplanation(
-                                assessmentTaken.interpretations.stress.score.toFloat()
-                            )
-                            cardviewMainscore3.setCardBackgroundColor(
-                                resources.getColor(getColorResForScore(assessmentTaken.interpretations.stress.level))
-                            )
-                            binding.tvResultExplanationTitle.text = explanation.first
-                            binding.tvResultExplanation.text = explanation.second
-                            binding.apply {
-                                tvRange1.text = "0"
-                                tvRange2.text = "14"
-                                tvRange3.text = "18"
-                                tvRange4.text = "25"
-                                tvRange5.text = "34+"
-                                tvRange6.text = ""
-                                tvRange5.visibility = View.VISIBLE
-                                tvExtSevere.visibility = View.VISIBLE
-                                tvRange5.gravity = Gravity.START
-                            }
-                        }
-                        binding.apply {
-                            tvRange1.text = "0"
-                            tvRange2.text = "14"
-                            tvRange3.text = "18"
-                            tvRange4.text = "25"
-                            tvRange5.text = "34+"
-                            tvRange6.text = ""
-                        }
-                    }
-                    scoreBarContainer.visibility = View.VISIBLE
-                    scoreBarcard.visibility = View.VISIBLE
-                    scoreBarcardGad7.visibility = View.GONE
-                    cardviewMainscore.visibility = View.VISIBLE
-
-                }
-
-
-                else -> {}
-            }
-        }
-
-
-    }*/
-
-
-
-
-
-    private fun setRainbowView(score: Int,showType:String) {
+    private fun setRainbowView(score: Int, showType: String) {
         binding.rainbowView.visibility = View.VISIBLE
-        if (showType.lowercase()=="depression") {
+        if (showType.lowercase() == "depression") {
             binding.rainbowView.setRainbowColors(getColorArrayForDASS_Depression_Score(score))
-        }else if (showType.lowercase()=="anxiety") {
+        } else if (showType.lowercase() == "anxiety") {
             binding.rainbowView.setRainbowColors(getColorArrayForDASS_Anxiety_Score(score))
-        }else if (showType.lowercase()=="stress") {
+        } else if (showType.lowercase() == "stress") {
             binding.rainbowView.setRainbowColors(getColorArrayForDASS_Stress_Score(score))
-        }else {
+        } else {
             binding.rainbowView.setRainbowColors(getColorArrayForScore(score))
         }
         binding.rainbowView.setStrokeWidth(60f)
@@ -568,9 +308,6 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
     }
 
 
-
-
-
     private fun getColorResForScore(score: Int): Int {
         return when (score) {
             in 0..3 -> R.color.green_minimal
@@ -580,6 +317,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             else -> R.color.red_ext_severe
         }
     }
+
     private fun getColorResForScore(score: String): Int {
         return when (score.lowercase()) {
             "normal" -> R.color.green_minimal
@@ -590,6 +328,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             else -> R.color.red_ext_severe
         }
     }
+
     private fun getColorResForScoreCASandGAD(score: String): Int {
         return when (score.lowercase()) {
             "minimal" -> R.color.green_minimal
@@ -599,7 +338,6 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             else -> R.color.red_ext_severe
         }
     }
-
 
 
     fun getColorArrayForScore(score: Int): IntArray {
@@ -625,6 +363,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             if (index < activeColorCount) colorLevels[index] else fallbackColor
         }
     }
+
     // Get Depression color array based on DASS-21 scoring
     fun getColorArrayForDASS_Depression_Score(score: Int): IntArray {
         val colorLevels = listOf(
@@ -649,6 +388,7 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             if (index < activeColorCount) colorLevels[index] else fallbackColor
         }
     }
+
     // Get Anxiety color array based on DASS-21 scoring
     fun getColorArrayForDASS_Anxiety_Score(score: Int): IntArray {
         val colorLevels = listOf(
@@ -673,7 +413,8 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             if (index < activeColorCount) colorLevels[index] else fallbackColor
         }
     }
-// Get Stress color array based on DASS-21 scoring
+
+    // Get Stress color array based on DASS-21 scoring
     fun getColorArrayForDASS_Stress_Score(score: Int): IntArray {
         val colorLevels = listOf(
             0xFF06B27B.toInt(), // green_minimal
@@ -697,7 +438,6 @@ class MindAuditDass21DetailResultActivity : BaseActivity() {
             if (index < activeColorCount) colorLevels[index] else fallbackColor
         }
     }
-
 
 
     private fun getDASS21DepressionExplanation(score: Float): Pair<String, String> {

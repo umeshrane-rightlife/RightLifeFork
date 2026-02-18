@@ -14,8 +14,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.gson.Gson;
 import com.jetsynthesys.rightlife.BaseActivity;
 import com.jetsynthesys.rightlife.R;
 import com.jetsynthesys.rightlife.ai_package.data.repository.ApiClient;
@@ -33,9 +34,13 @@ import com.jetsynthesys.rightlife.ai_package.ui.thinkright.adapter.Recommendatio
 import com.jetsynthesys.rightlife.databinding.DialogMindAuditDisclaimerBinding;
 import com.jetsynthesys.rightlife.ui.DialogUtils;
 import com.jetsynthesys.rightlife.ui.utility.AppConstants;
+import com.jetsynthesys.rightlife.ui.utility.SharedPreferenceConstants;
+import com.jetsynthesys.rightlife.ui.utility.SharedPreferenceManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -77,61 +82,10 @@ public class MASuggestedAssessmentActivity extends BaseActivity {
         selectedAssessment = getIntent().getStringExtra("SelectedAssessment");
         isFromThinkRight = getIntent().getBooleanExtra("FROM_THINK_RIGHT", false);
 
-        if (assessments != null) {
-            SuggestedAssessments suggestedAssessments = assessments.suggestedAssessments;
+        setUpUI();
 
-            rvSuggestedAssessment.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-            rvAllAssessment.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
-            suggestedAssessmentAdapter = new SuggestedAssessmentAdapter(this, suggestedAssessmentString, this::showDisclaimerDialog);
-            rvSuggestedAssessment.setAdapter(suggestedAssessmentAdapter);
-            rvSuggestedAssessment.scrollToPosition(0);
-
-            AllAssessment assessment = assessments.allAssessment;
-
-            if (assessment.getDass21() != null) {
-                allAssessments.add(assessment.getDass21());
-            } else {
-                suggestedAssessmentString.add("DASS-21");
-            }
-
-            if (assessment.getSleepAudit() != null) {
-                //allAssessments.add(assessment.getSleepAudit());
-            } else {
-                //suggestedAssessmentString.add("Sleep Audit");
-            }
-
-            if (assessment.getGad7() != null) {
-                allAssessments.add(assessment.getGad7());
-            } else {
-                suggestedAssessmentString.add("GAD-7");
-            }
-            if (assessment.getOhq() != null) {
-                allAssessments.add(assessment.getOhq());
-            } else {
-                suggestedAssessmentString.add("OHQ");
-            }
-
-            if (assessment.getCas() != null) {
-                allAssessments.add(assessment.getCas());
-            } else {
-                suggestedAssessmentString.add("CAS");
-            }
-
-            if (assessment.getPhq9() != null) {
-                allAssessments.add(assessment.getPhq9());
-            } else {
-                suggestedAssessmentString.add("PHQ-9");
-            }
-
-
-            allAssessmentAdapter = new AllAssessmentAdapter(this, allAssessments, this::showDisclaimerDialog);
-            rvAllAssessment.setAdapter(allAssessmentAdapter);
-            rvAllAssessment.scrollToPosition(0);
-            if (allAssessments.isEmpty()) {
-                tv_all_assessment.setVisibility(View.GONE);
-            }
-        }
+        UserEmotions userEmotions = SharedPreferenceManager.getInstance(this).getUserEmotions();
+        getSuggestedAssessment(userEmotions);
 
     }
 
@@ -334,5 +288,93 @@ public class MASuggestedAssessmentActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         isDisclaimerDialogShowing = false;
+    }
+
+    private void getSuggestedAssessment(UserEmotions userEmotions) {
+        String accessToken = sharedPreferenceManager.getString(SharedPreferenceConstants.ACCESS_TOKEN, null);
+
+        Call<ResponseBody> call = apiService.getSuggestedAssessment(accessToken, userEmotions);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    //Toast.makeText(requireContext(), "Success: " + response.code(), Toast.LENGTH_SHORT).show();
+                    try {
+                        String jsonString = response.body().string();
+                        Gson gson = new Gson();
+                        assessments = gson.fromJson(jsonString, Assessments.class);
+                        setUpUI();
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    Toast.makeText(MASuggestedAssessmentActivity.this, "Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(MASuggestedAssessmentActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setUpUI(){
+        if (assessments != null) {
+            SuggestedAssessments suggestedAssessments = assessments.suggestedAssessments;
+
+            rvSuggestedAssessment.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            rvAllAssessment.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+            suggestedAssessmentAdapter = new SuggestedAssessmentAdapter(this, suggestedAssessmentString, this::showDisclaimerDialog);
+            rvSuggestedAssessment.setAdapter(suggestedAssessmentAdapter);
+            rvSuggestedAssessment.scrollToPosition(0);
+
+            AllAssessment assessment = assessments.allAssessment;
+
+            if (assessment.getDass21() != null) {
+                allAssessments.add(assessment.getDass21());
+            } else {
+                suggestedAssessmentString.add("DASS-21");
+            }
+
+            if (assessment.getSleepAudit() != null) {
+                //allAssessments.add(assessment.getSleepAudit());
+            } else {
+                //suggestedAssessmentString.add("Sleep Audit");
+            }
+
+            if (assessment.getGad7() != null) {
+                allAssessments.add(assessment.getGad7());
+            } else {
+                suggestedAssessmentString.add("GAD-7");
+            }
+            if (assessment.getOhq() != null) {
+                allAssessments.add(assessment.getOhq());
+            } else {
+                suggestedAssessmentString.add("OHQ");
+            }
+
+            if (assessment.getCas() != null) {
+                allAssessments.add(assessment.getCas());
+            } else {
+                suggestedAssessmentString.add("CAS");
+            }
+
+            if (assessment.getPhq9() != null) {
+                allAssessments.add(assessment.getPhq9());
+            } else {
+                suggestedAssessmentString.add("PHQ-9");
+            }
+
+
+            allAssessmentAdapter = new AllAssessmentAdapter(this, allAssessments, this::showDisclaimerDialog);
+            rvAllAssessment.setAdapter(allAssessmentAdapter);
+            rvAllAssessment.scrollToPosition(0);
+            if (allAssessments.isEmpty()) {
+                tv_all_assessment.setVisibility(View.GONE);
+            }
+        }
     }
 }
